@@ -1,0 +1,38 @@
+{
+  "name": "MSDApp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "logs/*",
+      "frontend/*"
+    ]
+  },
+  "scripts": {
+    "frontend": "cd frontend && npm start",
+    "server": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.1",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.2",
+    "ganache-cli": "^6.12.2",
+    "merkle-tree-gen": "^1.1.0",
+    "mqtt": "^4.3.5",
+    "netdb": "^2017.3.17",
+    "socket.io": "^4.4.1",
+    "winston-socket.io": "^0.6.0"
+  }
+}
