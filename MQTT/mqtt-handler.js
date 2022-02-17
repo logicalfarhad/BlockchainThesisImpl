@@ -40,18 +40,16 @@ class MQTTHandler {
   }
 
   onMQTTConnect() {
-    // Logger.logEvent(this.clientName, "MQTT client connected");
     this.mqttClient.subscribe(Topics.TOPIC_FIT_FRIDGE, { qos: 0 });
   }
 
   onMQTTMessage(topic, messageBuffer) {
     let message = JSON.parse(messageBuffer.toString());
     this.tree.generate(message, (hash) => {
-      console.log(hash);
       if (this.IO) {
         this.IO.emit('data_from_mqtt', {
-          'topic': topic,
-          'payload': message
+          logHash: hash,
+          timeStamp: new Date().toISOString(),
         });
       }
     });
