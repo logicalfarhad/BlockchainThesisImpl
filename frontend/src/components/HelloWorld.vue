@@ -40,7 +40,6 @@ export default {
         console.log(value);
       }
       console.log(logCount);
-      
     },
     async getTransaction() {
       const id = await web3.eth.net.getId();
@@ -68,7 +67,7 @@ export default {
         });
     },
   },
-  mounted: () => {
+  mounted() {
     const socket = io.connect("http://localhost:5000");
     socket.on("connect", () => {
       socket.on("data_from_mqtt", (msg) => {
@@ -82,15 +81,13 @@ export default {
             );
             contract.methods
               .addLog(msg.logHash, msg.timeStamp)
-              .estimateGas({ from: accounts[0] })
-              .then((gasPrize) => {
+              .estimateGas({ from: accounts[0] }).then((gasPrize) => {
                 contract.methods
                   .addLog(msg.logHash, msg.timeStamp)
                   .send({ from: accounts[0], gas: gasPrize })
                   .then((receipt) => {
                     console.log(receipt);
-                  })
-                  .catch((error) => {
+                  }).catch((error) => {
                     console.log(error);
                   });
               });
