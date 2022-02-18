@@ -14,9 +14,6 @@ class Merkeltree {
     gentree.fromArray(this.args, (err, tree) => {
       if (!err) {
         callback(tree.root);
-        //console.log('Root hash: ' + tree.root);
-        //console.log('Number of leaves: ' + tree.leaves);
-        //console.log('Number of levels: ' + tree.levels);
       }
     });
   }

@@ -1,6 +1,5 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
     Hash: <input type="text" v-model="hash" /><br />
     TimeStamp:<input type="text" v-model="timestamp" />
     <br />
@@ -13,6 +12,11 @@
 import { io } from "socket.io-client";
 import web3 from "../Web3";
 import TransactionArtifact from "../../../build/contracts/Transaction.json";
+import {
+  sendTransaction,
+  getTransaction,
+  getAllDaysInMonth,
+} from "../utils/tx";
 export default {
   name: "HelloWorld",
   props: {
@@ -67,6 +71,24 @@ export default {
         });
     },
   },
+  created() {
+    sendTransaction("hola");
+    getTransaction("hola.....");
+    const dateList = getAllDaysInMonth(2, 2022);
+
+    const START_DATE = "2022-02-01T23:00:00.000Z";
+    const END_DATE = "2022-02-08T23:00:00.000Z";
+
+    let startDate = new Date(START_DATE).getTime();
+    let endDate = new Date(END_DATE).getTime();
+
+    let filterd_date = dateList
+      .filter((item) => item < endDate && item > startDate)
+      .map((item) => {
+        return new Date(item).toISOString();
+      });
+    console.log(filterd_date);
+  },
   mounted() {
     const socket = io.connect("http://localhost:5000");
     socket.on("connect", () => {
@@ -81,13 +103,15 @@ export default {
             );
             contract.methods
               .addLog(msg.logHash, msg.timeStamp)
-              .estimateGas({ from: accounts[0] }).then((gasPrize) => {
+              .estimateGas({ from: accounts[0] })
+              .then((gasPrize) => {
                 contract.methods
                   .addLog(msg.logHash, msg.timeStamp)
                   .send({ from: accounts[0], gas: gasPrize })
                   .then((receipt) => {
                     console.log(receipt);
-                  }).catch((error) => {
+                  })
+                  .catch((error) => {
                     console.log(error);
                   });
               });

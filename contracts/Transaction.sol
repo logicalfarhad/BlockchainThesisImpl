@@ -1,27 +1,29 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.11;
 
 contract Transaction {
-    struct Log{
-    uint id;
-    string hashVal;
-    string timestamp;
-    
-  }
-  mapping (uint => Log) internal logList;
-  event savingsEvent(uint indexed _memberId);
-  
-  uint public logCount;
-  
-  constructor() {
-    logCount = 0;
-  }
-  function addLog(string memory _hash,string memory _timestamp) public {
-    logList[logCount] = Log(logCount, _hash, _timestamp);
-    logCount++;
-  }
-  //return Single structure
-  function getLogbyId(uint _logId) public view returns(Log memory) {
-    return logList[_logId];
-  }
+    struct Log {
+        string hashValue;
+        uint256 timestamp;
+    }
+    mapping(uint256 => Log) logList;
+
+    Log[] logs;
+
+    uint256 public logCount;
+
+    constructor() {
+        logCount = 0;
+    }
+
+    function addLog(string memory _hashVal, uint256 _timestamp) public {
+        logs.push(Log(_hashVal, _timestamp));
+        logList[logCount] = Log(_hashVal, _timestamp);
+        logCount++;
+    }
+
+    function getLogbyId(uint256 _logId) public view returns (Log memory) {
+        return logList[_logId];
+    }
 }
