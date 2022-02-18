@@ -9,8 +9,6 @@ contract Transaction {
     }
     mapping(uint256 => Log) logList;
 
-    Log[] logs;
-
     uint256 public logCount;
 
     constructor() {
@@ -18,7 +16,6 @@ contract Transaction {
     }
 
     function addLog(string memory _hashVal, uint256 _timestamp) public {
-        logs.push(Log(_hashVal, _timestamp));
         logList[logCount] = Log(_hashVal, _timestamp);
         logCount++;
     }
