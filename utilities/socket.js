@@ -9,7 +9,6 @@ module.exports = {
         origin: "*",
       },
     });
-    //io.origins("*:*");
     io.on("connection", (socket) => {
       let sessionID = socket.id;
       Logger.info(`${sessionID} connected on socket io`);

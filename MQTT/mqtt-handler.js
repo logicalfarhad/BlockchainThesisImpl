@@ -3,7 +3,7 @@ const Topics = require("./topics");
 const mqtt = require("mqtt");
 const Logger = require("../utilities/logger");
 const Merkeltree = require("../utilities/merkeltree")
-
+const Db = require("../utilities/logDb");
 class MQTTHandler {
   constructor() {
   }
@@ -27,6 +27,8 @@ class MQTTHandler {
       this.onMQTTMessage(topic, messageBuffer)
     );
     this.IO = require("../utilities/socket.js").getIO();
+    this.Db = new Db("log.db");
+
 
     this.tree = new Merkeltree();
   }
@@ -44,16 +46,25 @@ class MQTTHandler {
   }
 
   onMQTTMessage(topic, messageBuffer) {
-    let message = JSON.parse(messageBuffer.toString());
-    this.tree.generate(message, (hash) => {
+    let payload = JSON.parse(messageBuffer.toString());
+
+
+    this.tree.generate(payload, (hash) => {
       if (this.IO) {
         this.IO.emit('data_from_mqtt', {
           logHash: hash,
-          timeStamp: new Date().toISOString(),
+          timeStamp: new Date(payload.Time).getTime(),
+        });
+        this.Db.insertLog({
+          logHash: hash,
+          timeStamp: new Date(payload.Time).getTime(),
+        }, (err, message) => {
+          if (err) {
+            console.log(err);
+          }
         });
       }
     });
   }
 }
-
 module.exports = MQTTHandler;

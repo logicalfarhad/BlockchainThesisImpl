@@ -5,7 +5,7 @@ pragma solidity ^0.8.11;
 contract Transaction {
     struct Log {
         string hashValue;
-        uint256 timestamp;
+        uint256 timeStamp;
     }
     mapping(uint256 => Log) logList;
 

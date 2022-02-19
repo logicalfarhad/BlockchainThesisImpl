@@ -15,12 +15,13 @@
   "scripts": {
     "frontend": "cd frontend && npm start",
     "server": "nodemon server.js",
-    "start": "node server.js"
+    "start": "concurrently \"node server.js\" \"cd frontend && npm start\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "concurrently": "^7.0.0",
     "nodemon": "^2.0.15",
     "prettier": "^2.5.1"
   },
@@ -31,6 +32,7 @@
     "ganache-cli": "^6.12.2",
     "merkle-tree-gen": "^1.1.0",
     "mqtt": "^4.3.5",
+    "nedb": "^1.8.0",
     "netdb": "^2017.3.17",
     "socket.io": "^4.4.1",
     "winston-socket.io": "^0.6.0"
