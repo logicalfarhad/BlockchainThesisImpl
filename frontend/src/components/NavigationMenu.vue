@@ -1,5 +1,4 @@
 <template>
-
   <v-list class="navigation-menu">
     <div class="navigation-menu-header">
       <img src="@/assets/fraunhofer_logo_schwarz.png" class="fraunhofer-logo" />
@@ -12,10 +11,7 @@
         :to="item.to"
       >
         <v-list-item-icon :class="item.icon">
-          <!-- <img :src="item.icon" alt=""></img> -->
-          <!-- <v-icon color="white">{{item.icon}}</v-icon> -->
         </v-list-item-icon>
-
         <v-list-item-content>
           <v-list-item-title>{{ item.title }}</v-list-item-title>
         </v-list-item-content>

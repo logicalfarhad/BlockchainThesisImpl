@@ -20,10 +20,9 @@
         </v-breadcrumbs>
       </div>
       <v-row no-gutters>
-        <v-col cols="12" md="9">
+        <v-col cols="12" md="12">
           <router-view class="main-content"></router-view>
         </v-col>
-        <v-col cols="12" md="2"> </v-col>
       </v-row>
       <v-overlay :value="showBusyIndicator">
         <v-progress-circular
@@ -48,13 +47,9 @@
 
 <script>
 import NavigationMenu from "@/components/NavigationMenu";
-//import InfoBox from "@/components/InfoBox.vue";
-// import BrokersPage from "@/pages/brokers/BrokersPage.vue";
-
 export default {
   components: {
     NavigationMenu,
-    //  InfoBox
   },
   data: () => ({
     drawer: null,

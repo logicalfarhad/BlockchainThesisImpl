@@ -3,15 +3,15 @@ import HelloWorld from "./HelloWorld.vue";
 export default {
     getPageStructure() {
         return [{
-            path: "dashboard",
-            name: "Dashboard",
+            path: "logging",
+            name: "Event Logging",
             icon: "icon-dashboard",
             component: DashboardPage,
             subpages: []
         },
         {
-            path: "settings",
-            name: "Settings",
+            path: "invoice",
+            name: "Invoice for Devices",
             icon: "icon-settings",
             component: HelloWorld,
             subpages: []

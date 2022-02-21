@@ -4,7 +4,7 @@ import PageStructure from "../components/PageStructure";
 const routes = [{
   path: "/",
   component: MainLayout,
-  redirect: "/dashboard",
+  redirect: "/logging",
   children: getRoutes()
 }];
 

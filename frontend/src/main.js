@@ -4,17 +4,17 @@ import VueRouter from "vue-router";
 import vuetify from './plugins/vuetify';
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import routes from "./router/routes";
-
+import DateTimePicker from 'vuetify-datetime-picker';
 
 // configure router
 const router = new VueRouter({
   // mode: 'history',
-  routes, // short for routes: routes
+  routes,
   linkExactActiveClass: "nav-item active"
 });
 
+Vue.use(DateTimePicker);
 Vue.use(VueRouter);
-//Vue.component('apexchart', VueApexCharts)
 
 Vue.config.productionTip = false
 
