@@ -7,8 +7,8 @@
           <v-card-text>
             <v-flex xs8>
               <v-datetime-picker
-                v-model="datetime"
-                :text-field-props="textFieldProps"
+                v-model="startDate"
+                :text-field-props="textFieldProps1"
                 :date-picker-props="dateProps"
                 :time-picker-props="timeProps"
                 time-format="HH:mm:ss"
@@ -27,8 +27,8 @@
             </v-flex>
             <v-flex xs8>
               <v-datetime-picker
-                v-model="datetime"
-                :text-field-props="textFieldProps"
+                v-model="endDate"
+                :text-field-props="textFieldProps2"
                 :date-picker-props="dateProps"
                 :time-picker-props="timeProps"
                 time-format="HH:mm:ss"
@@ -49,8 +49,8 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary lighten-1">CLEAR</v-btn>
-            <v-btn color="primary darken-1">Verify</v-btn>
+            <v-btn color="primary lighten-1" @click="clear">CLEAR</v-btn>
+            <v-btn color="primary darken-1" @click="verify">Verify</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -59,7 +59,8 @@
           <v-card-title>{{ title }}</v-card-title>
           <v-card-text>
             <v-card-text>
-              The dashboard shows the event logs based on selected date and time.
+              The dashboard shows the event logs based on selected date and
+              time.
             </v-card-text>
           </v-card-text>
         </v-card>
@@ -69,21 +70,27 @@
 </template>
 <script>
 export default {
-  components: {
-  },
+  components: {},
   data() {
     return {
       title: "Event Logging Dashboard",
-      datetime: null,
-      textFieldProps: {
+      startDate: null,
+      endDate: null,
+      textFieldProps1: {
         prependIcon: "event",
         dense: true,
         filled: true,
         placeholder: "Please select start date",
       },
+      textFieldProps2: {
+        prependIcon: "event",
+        dense: true,
+        filled: true,
+        placeholder: "Please select end date",
+      },
       dateProps: {
         min: null,
-        max: new Date().toISOString(),
+        max: null,
       },
       timeProps: {
         useSeconds: true,
@@ -91,6 +98,31 @@ export default {
         scrollable: true,
       },
     };
-  }
+  },
+  methods: {
+    async verify() {
+      this.$root.$emit("showBusyIndicator", true);
+      const response = await fetch(
+        "http://localhost:5000/getLogsfromBlockchain"
+      );
+      const data = await response.json();
+      console.log(data);
+
+      console.log("--------------------------------");
+      const dbresponse = await fetch("http://localhost:5000/getLogsfromDb");
+      const dbdata = await dbresponse.json();
+      console.log(dbdata);
+      this.$root.$emit("showBusyIndicator", false);
+    },
+    clear() {
+      
+    },
+  },
+  created() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this.dateProps.max = tomorrow.toISOString();
+  },
 };
 </script>

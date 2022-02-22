@@ -1,35 +1,50 @@
-import TransactionArtifact from "../../../build/contracts/Transaction.json";
-import Web3 from 'web3';
-export class TransactionUtil {
+const TransactionArtifact = require("../build/contracts/Transaction.json");
+const Provider = require("@truffle/hdwallet-provider");
+const Web3 = require("web3");
+const address = '0x643635D5f70D1F6d311f993cC248c270d2E678da';
+const privateKey = '936dc707a66f18e0e0e8523eef7bf17d996974cf11219f3c6f3830b0331a76af';
+
+class TransactionUtil {
   constructor() {
-    this.web3 = new Web3('http://localhost:8545');
+    const provider = new Provider(privateKey, 'http://localhost:8545/');
+    this.web3 = new Web3(provider);
   }
   async sendTransaction(payload) {
     let gasPrize = await this.estimateGas(payload);
     const contract = await this.getContract();
-    const addresses = await this.web3.eth.getAccounts();
     const receipt = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
-      .send({ from: addresses[0], gas: gasPrize });
-    console.log(receipt);
+      .send({ from: address, gas: gasPrize });
+
+    let tx = {
+      transactionHash: receipt.transactionHash,
+      blockNumber: receipt.blockNumber
+
+    }
+    console.log(tx);
   }
-  async getValue() {
+  async getTransaction() {
     const contract = await this.getContract();
     let logCount = await contract.methods.logCount().call();
 
+    let transactionList = [];
+
     for (let i = 0; i < logCount; i++) {
       let value = await contract.methods.getLogbyId(i).call();
-      console.log(value);
+
+      let tx = {
+        logHash: value[0],
+        timeStamp: value[1]
+      };
+      transactionList.push(tx);
     }
-    console.log(logCount)
+    return transactionList;
   }
   async estimateGas(payload) {
     const contract = await this.getContract();
-    const addresses = await this.web3.eth.getAccounts();
-
     const gasPrize = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
-      .estimateGas({ from: addresses[0] });
+      .estimateGas({ from: address });
     return gasPrize;
   }
 
@@ -50,3 +65,4 @@ export class TransactionUtil {
     return dates;
   }
 }
+module.exports = TransactionUtil;

@@ -4,8 +4,10 @@ const mqtt = require("mqtt");
 const Logger = require("../utilities/logger");
 const Merkeltree = require("../utilities/merkeltree")
 const Db = require("../utilities/logDb");
+const TransactionUtil = require("../utilities/tx");
 class MQTTHandler {
   constructor() {
+    this.tx = new TransactionUtil();
   }
   connect() {
     const mqtt_host = 'zamperoni.fit.fraunhofer.de';
@@ -47,18 +49,17 @@ class MQTTHandler {
 
   onMQTTMessage(topic, messageBuffer) {
     let payload = JSON.parse(messageBuffer.toString());
-
-
     this.tree.generate(payload, (hash) => {
+      
+      let txObj = {
+        logHash: hash,
+        timeStamp: new Date(payload.Time).getTime(),
+      };
+
       if (this.IO) {
-        this.IO.emit('data_from_mqtt', {
-          logHash: hash,
-          timeStamp: new Date(payload.Time).getTime(),
-        });
-        this.Db.insertLog({
-          logHash: hash,
-          timeStamp: new Date(payload.Time).getTime(),
-        }, (err, message) => {
+        this.IO.emit('data_from_mqtt', txObj);
+        this.tx.sendTransaction(txObj);
+        this.Db.insertLog(txObj, (err, message) => {
           if (err) {
             console.log(err);
           }

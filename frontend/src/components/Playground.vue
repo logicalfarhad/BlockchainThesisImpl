@@ -10,9 +10,6 @@
 </template>
 
 <script>
-import { io } from "socket.io-client";
-import { TransactionUtil } from "../utils/tx";
-
 export default {
   name: "HelloWorld",
   props: {
@@ -22,14 +19,10 @@ export default {
     return {
       hash: "",
       timestamp: "",
-      tx: {},
-      socket: io(),
     };
   },
   methods: {
-    getValue() {
-      this.tx.getValue();
-    },
+    getValue() {},
     async getLogs() {
       const response = await fetch("http://localhost:5000/getLogs");
       const logs = await response.json();
@@ -43,7 +36,7 @@ export default {
     },
   },
   created() {
-    this.tx = new TransactionUtil();
+    /*
     const dateList = this.tx.getAllDaysInMonth(2, 2022);
 
     const START_DATE = "2022-02-01T23:00:00.000Z";
@@ -58,15 +51,9 @@ export default {
         return new Date(item).toISOString();
       });
     console.log(filterd_date);
+    */
   },
-  mounted() {
-    this.socket = io.connect("http://localhost:5000");
-    this.socket.on("connect", () => {
-      this.socket.on("data_from_mqtt", (msg) => {
-        this.tx.sendTransaction(msg);
-      });
-    });
-  },
+  mounted() {},
 };
 </script>
 

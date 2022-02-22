@@ -45,6 +45,7 @@ module.exports = {
       host: "127.0.0.1", // Localhost (default: none)
       port: 8545, // Standard Ethereum port (default: none)
       network_id: "*", // Any network (default: none)
+    //  provider: () => new HDWalletProvider('pumpkin become neither domain social green unknown lend loop local super nice', `http://localhost:8545/`),
     }
     // Another network with more advanced options...
     // advanced: {

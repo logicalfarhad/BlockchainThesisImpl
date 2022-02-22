@@ -5,7 +5,7 @@ export default {
         return [{
             path: "logging",
             name: "Event Logging",
-            icon: "icon-dashboard",
+            icon: "icon-dataconsumption",
             component: DashboardPage,
             subpages: []
         },
