@@ -1,8 +1,8 @@
 const TransactionArtifact = require("../build/contracts/Transaction.json");
 const Provider = require("@truffle/hdwallet-provider");
 const Web3 = require("web3");
-const address = '0x643635D5f70D1F6d311f993cC248c270d2E678da';
-const privateKey = '936dc707a66f18e0e0e8523eef7bf17d996974cf11219f3c6f3830b0331a76af';
+const address = '0x2C30D6CbAF87E0b11f328e31523021e8A3484F35';
+const privateKey = '494b3f9f6447d53f39fe6eeb8edd09ceaadf0b87c43d6e8204ee04818578874f';
 
 class TransactionUtil {
   constructor() {
@@ -15,13 +15,7 @@ class TransactionUtil {
     const receipt = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
       .send({ from: address, gas: gasPrize });
-
-    let tx = {
-      transactionHash: receipt.transactionHash,
-      blockNumber: receipt.blockNumber
-
-    }
-    console.log(tx);
+      console.log(receipt);
   }
   async getTransaction() {
     const contract = await this.getContract();

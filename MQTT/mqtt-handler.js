@@ -5,6 +5,7 @@ const Logger = require("../utilities/logger");
 const Merkeltree = require("../utilities/merkeltree")
 const Db = require("../utilities/logDb");
 const TransactionUtil = require("../utilities/tx");
+const MongoClient = require('mongodb').MongoClient;
 class MQTTHandler {
   constructor() {
     this.tx = new TransactionUtil();
@@ -29,13 +30,12 @@ class MQTTHandler {
       this.onMQTTMessage(topic, messageBuffer)
     );
     this.IO = require("../utilities/socket.js").getIO();
-    this.Db = new Db("log.db");
+    this.Db = new Db();
 
 
     this.tree = new Merkeltree();
   }
   onMQTTError(error) {
-    // Logger.logError(error, this.clientName);
     this.mqttClient.end();
   }
 
@@ -49,8 +49,9 @@ class MQTTHandler {
 
   onMQTTMessage(topic, messageBuffer) {
     let payload = JSON.parse(messageBuffer.toString());
+    console.log(payload);
     this.tree.generate(payload, (hash) => {
-      
+
       let txObj = {
         logHash: hash,
         timeStamp: new Date(payload.Time).getTime(),
@@ -59,10 +60,17 @@ class MQTTHandler {
       if (this.IO) {
         this.IO.emit('data_from_mqtt', txObj);
         this.tx.sendTransaction(txObj);
-        this.Db.insertLog(txObj, (err, message) => {
-          if (err) {
-            console.log(err);
-          }
+        var url = "mongodb://localhost:27017";
+        const client = MongoClient(url);
+
+        client.connect((err) => {
+          if (err) throw err;
+          var dbo = client.db("logging");
+          dbo.collection("mqtt").insertOne(payload, (err, res) => {
+            if (err) throw err;
+            console.log("1 document inserted");
+            client.close();
+          });
         });
       }
     });

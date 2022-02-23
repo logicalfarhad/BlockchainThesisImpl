@@ -15,7 +15,7 @@
   "scripts": {
     "frontend": "cd frontend && npm start",
     "server": "nodemon server.js",
-    "start": "concurrently \"node server.js\" \"cd frontend && npm start\""
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +32,8 @@
     "express": "^4.17.2",
     "ganache-cli": "^6.12.2",
     "merkle-tree-gen": "^1.1.0",
+    "mongodb": "^3.7.3",
+    "mongoose": "^6.2.3",
     "mqtt": "^4.3.5",
     "nedb": "^1.8.0",
     "socket.io": "^4.4.1",

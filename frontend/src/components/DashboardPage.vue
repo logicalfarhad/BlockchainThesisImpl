@@ -58,10 +58,13 @@
         <v-card class="info-box" elevation="3" tile>
           <v-card-title>{{ title }}</v-card-title>
           <v-card-text>
-            <v-card-text>
-              The dashboard shows the event logs based on selected date and
-              time.
-            </v-card-text>
+            <v-data-table
+              dense
+              :headers="headers"
+              :items="logList"
+              :items-per-page="5"
+              class="elevation-1"
+            ></v-data-table>
           </v-card-text>
         </v-card>
       </v-col>
@@ -97,6 +100,22 @@ export default {
         smAndUp: true,
         scrollable: true,
       },
+      logList: [],
+      headers: [
+        {
+          text: "Block Loghash",
+          sortable: false,
+          value: "blocklogHash",
+        },
+        {
+          text: "Db Loghash",
+          sortable: false,
+          value: "dblogHash",
+        },
+        { text: "Block timestamp", sortable: false, value: "blocktimeStamp" },
+        { text: "Db timestamp", sortable: false, value: "dbtimeStamp" },
+        { text: "Same", sortable: true, value: "same" },
+      ],
     };
   },
   methods: {
@@ -105,18 +124,45 @@ export default {
       const response = await fetch(
         "http://localhost:5000/getLogsfromBlockchain"
       );
-      const data = await response.json();
-      console.log(data);
+      const blockData = await response.json();
+      console.log(blockData);
+      this.$root.$emit("showBusyIndicator", false);
 
+/*
       console.log("--------------------------------");
       const dbresponse = await fetch("http://localhost:5000/getLogsfromDb");
       const dbdata = await dbresponse.json();
-      console.log(dbdata);
+
       this.$root.$emit("showBusyIndicator", false);
+/*
+      if (blockData.length === dbdata.length) {
+        for (let i = 0; i < dbdata.length; i++) {
+          if (
+            blockData[i].logHash == dbdata[i].logHash &&
+            blockData[i].timeStamp == dbdata[i].timeStamp
+          ) {
+            this.logList.push({
+              blocklogHash: blockData[i].logHash,
+              dblogHash: dbdata[i].logHash,
+              blocktimeStamp: blockData[i].timeStamp,
+              dbtimeStamp: dbdata[i].timeStamp.toString(),
+              same: true,
+            });
+          } else {
+            this.logList.push({
+              blocklogHash: blockData[i].logHash,
+              dblogHash: dbdata[i].logHash,
+              blocktimeStamp: blockData[i].timeStamp,
+              dbtimeStamp: dbdata[i].timeStamp.toString(),
+              same: false,
+            });
+          }
+        }
+      }*/
+
+      console.log(this.logList);
     },
-    clear() {
-      
-    },
+    clear() {},
   },
   created() {
     const today = new Date();

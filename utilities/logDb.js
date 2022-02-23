@@ -1,11 +1,12 @@
 const dbStore = require('nedb');
+
 class LogDb {
-    constructor(filePath) {
-        this.filePath = filePath;
+    constructor() {
+      
     }
     getDb() {
         const db = new dbStore({
-            filename: this.filePath,
+            filename: "logs.json",
             autoload: true
         });
         return db;
