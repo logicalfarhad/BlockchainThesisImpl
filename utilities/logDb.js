@@ -1,38 +1,40 @@
-const dbStore = require('nedb');
+const { MongoClient } = require("mongodb");
+const connectionString = 'mongodb://localhost:27017';
+const client = new MongoClient(connectionString, {
+    // useNewUrlParser: true,
+    // useUnifiedTopology: true
+});
 
-class LogDb {
-    constructor() {
-      
-    }
-    getDb() {
-        const db = new dbStore({
-            filename: "logs.json",
-            autoload: true
-        });
-        return db;
-    }
-    insertLog(document, cb) {
-        const db = this.getDb();
-        // newDoc is the newly inserted document, including its _id
-        db.insert(document, (err, doc) => {
-            cb(err, doc);
-        })
-    }
-    getLogs(cb) {
-        const db = this.getDb();
-        //Find all documents in the collection
-        db.find({}, (err, docs) => {
-            cb(docs);
-        });
-    }
-    removeAll(cb) {
-        const db = this.getDb();
-        // Removing all documents with the 'match-all' query
-        db.remove({}, { multi: true }, (err, numRemoved) => {
-            cb(numRemoved);
-        });
+let dbConnection;
 
-    }
-}
+module.exports = {
+    connectToServer: (callback) => {
+        client.connect((err, db) => {
+            if (err || !db) {
+                return callback(err);
+            }
 
-module.exports = LogDb;
+            dbConnection = db.db("logging");
+            console.log("Successfully connected to MongoDB.");
+
+            return callback();
+        });
+    },
+
+    getDb: () => {
+        return dbConnection;
+    },
+    insertLog: async (payload) => {
+        const result = await dbConnection.collection('mqtt').insertOne(payload);
+        console.log(result.insertedId);
+    },
+    getLogs: async (callback) => {
+        let result = await dbConnection.collection('mqtt').find({}).toArray();
+        callback(result);
+    },
+
+    removeAll: async (callback) => {
+        const result = await dbConnection.collection('mqtt').deleteMany();
+        callback(result);
+    }
+};
