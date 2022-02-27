@@ -8,6 +8,7 @@
             <v-flex xs8>
               <v-datetime-picker
                 v-model="startDate"
+                ref="startDate"
                 :text-field-props="textFieldProps1"
                 :date-picker-props="dateProps"
                 :time-picker-props="timeProps"
@@ -28,6 +29,7 @@
             <v-flex xs8>
               <v-datetime-picker
                 v-model="endDate"
+                ref="endDate"
                 :text-field-props="textFieldProps2"
                 :date-picker-props="dateProps"
                 :time-picker-props="timeProps"
@@ -120,15 +122,28 @@ export default {
   },
   methods: {
     async verify() {
+      const startDate = this.$refs["startDate"].selectedDatetime.toISOString();
+      const endDate = this.$refs["endDate"].selectedDatetime.toISOString();
       this.$root.$emit("showBusyIndicator", true);
+
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate: startDate, endDate: endDate }),
+      };
       const response = await fetch(
-        "http://localhost:5000/getLogsfromBlockchain"
+        "http://localhost:5000/getLogsfromBlockchain",
+        requestOptions
       );
-      const blockData = await response.json();
-      console.log(blockData);
+      const data = await response.json();
+      const dbresponse = await fetch(
+        "http://localhost:5000/getLogsfromDb",
+        requestOptions
+      );
+      const blockData = await dbresponse.json();
       this.$root.$emit("showBusyIndicator", false);
 
-/*
+      /*
       console.log("--------------------------------");
       const dbresponse = await fetch("http://localhost:5000/getLogsfromDb");
       const dbdata = await dbresponse.json();
@@ -160,7 +175,7 @@ export default {
         }
       }*/
 
-      console.log(this.logList);
+      //console.log(this.logList);
     },
     clear() {},
   },
@@ -170,5 +185,7 @@ export default {
     tomorrow.setDate(tomorrow.getDate() + 1);
     this.dateProps.max = tomorrow.toISOString();
   },
+
+  computed: {},
 };
 </script>

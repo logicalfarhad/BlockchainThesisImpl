@@ -15,29 +15,24 @@ require("./utilities/socket.js").init(server);
 const Logger = require("./utilities/logger");
 const db = require("./utilities/logDb");
 const Merkeltree = require("./utilities/merkeltree")
-const tree = new Merkeltree();
+
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/getLogsfromDb", (req, res) => {
-    db.getLogs((result) => {
-        res.send(result);
-    });
-
-    /*
-    logDb.getLogs((docs) => {
+app.post("/getLogsfromDb", (req, res) => {
+    const { startDate, startDate } = req.body;
+    const tree = new Merkeltree();
+    db.getLogs((documents) => {
         let hashArr = [];
-        docs.forEach((doc) => {
+        documents.forEach((doc) => {
             tree.generate(doc, (hash) => {
-                hashArr.push({ logHash: hash, timeStamp: new Date(doc.Time).getTime() });
+                hashArr.push({ logHash: hash, timeStamp: Date.parse(doc.Time) });
             })
-        })
-        hashArr.sort((a, b) => a.timeStamp - b.timeStamp);
+        });
         res.json(hashArr);
     });
-*/
 });
 
 app.get("/removeDb", (req, res) => {
@@ -47,9 +42,9 @@ app.get("/removeDb", (req, res) => {
     })
 })
 
-app.get("/getLogsfromBlockchain", async (req, res) => {
+app.post("/getLogsfromBlockchain", async (req, res) => {
+    const { startDate, startDate } = req.body;
     const transactionList = await tx.getTransaction();
-    transactionList.sort((a, b) => a.timeStamp - b.timeStamp);
     res.json(transactionList);
 })
 /*
@@ -60,7 +55,7 @@ app.get("*", function (req, res) {
 */
 
 
-db.connectToServer(function (err) {
+db.connectDB(async (err) => {
     if (err) {
         console.error(err);
         process.exit();
