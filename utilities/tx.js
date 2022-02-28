@@ -15,22 +15,26 @@ class TransactionUtil {
     const receipt = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
       .send({ from: address, gas: gasPrize });
-      console.log(receipt);
+    console.log(receipt);
   }
-  async getTransaction() {
+  async getTransaction(startDate, endDate) {
     const contract = await this.getContract();
     let logCount = await contract.methods.logCount().call();
 
+    const startDateEpoch = new Date(startDate).getTime();
+    const endDateEpoch = new Date(endDate).getTime();
     let transactionList = [];
-
     for (let i = 0; i < logCount; i++) {
       let value = await contract.methods.getLogbyId(i).call();
 
+      let timestamp = parseInt(value[1], 10);
+        if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
       let tx = {
         logHash: value[0],
-        timeStamp: value[1]
+        timeStamp: timestamp,
       };
       transactionList.push(tx);
+         }
     }
     return transactionList;
   }

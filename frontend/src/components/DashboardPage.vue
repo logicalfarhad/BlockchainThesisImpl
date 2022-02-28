@@ -99,8 +99,10 @@ export default {
       },
       timeProps: {
         useSeconds: true,
-        smAndUp: true,
+        //smAndUp: true,
         scrollable: true,
+        ampmInTitle: true,
+        format: "24hr",
       },
       logList: [],
       headers: [
@@ -124,6 +126,9 @@ export default {
     async verify() {
       const startDate = this.$refs["startDate"].selectedDatetime.toISOString();
       const endDate = this.$refs["endDate"].selectedDatetime.toISOString();
+
+      console.log(startDate);
+      console.log(endDate);
       this.$root.$emit("showBusyIndicator", true);
 
       const requestOptions = {
@@ -131,25 +136,20 @@ export default {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ startDate: startDate, endDate: endDate }),
       };
-      const response = await fetch(
+      const blockResponse = await fetch(
         "http://localhost:5000/getLogsfromBlockchain",
         requestOptions
       );
-      const data = await response.json();
+      const blockData = await blockResponse.json();
+
       const dbresponse = await fetch(
         "http://localhost:5000/getLogsfromDb",
         requestOptions
       );
-      const blockData = await dbresponse.json();
-      this.$root.$emit("showBusyIndicator", false);
-
-      /*
-      console.log("--------------------------------");
-      const dbresponse = await fetch("http://localhost:5000/getLogsfromDb");
       const dbdata = await dbresponse.json();
 
       this.$root.$emit("showBusyIndicator", false);
-/*
+
       if (blockData.length === dbdata.length) {
         for (let i = 0; i < dbdata.length; i++) {
           if (
@@ -173,9 +173,7 @@ export default {
             });
           }
         }
-      }*/
-
-      //console.log(this.logList);
+      }
     },
     clear() {},
   },

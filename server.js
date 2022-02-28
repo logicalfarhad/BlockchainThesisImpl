@@ -22,13 +22,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/getLogsfromDb", (req, res) => {
-    const { startDate, startDate } = req.body;
+    const { startDate, endDate } = req.body;
+
+    const startDateEpoch = new Date(startDate).getTime();//startDate is small 22/02/2022
+    //searchDate is 25/02/2022
+    const endDateEpoch = new Date(endDate).getTime(); //endDate is bigger 28/02/2022
     const tree = new Merkeltree();
     db.getLogs((documents) => {
         let hashArr = [];
         documents.forEach((doc) => {
             tree.generate(doc, (hash) => {
-                hashArr.push({ logHash: hash, timeStamp: Date.parse(doc.Time) });
+                let timestamp = new Date(doc.Time).getTime();
+                 if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
+                hashArr.push({ logHash: hash, timeStamp: timestamp });
+                  }
             })
         });
         res.json(hashArr);
@@ -43,8 +50,8 @@ app.get("/removeDb", (req, res) => {
 })
 
 app.post("/getLogsfromBlockchain", async (req, res) => {
-    const { startDate, startDate } = req.body;
-    const transactionList = await tx.getTransaction();
+    const { startDate, endDate } = req.body;
+    const transactionList = await tx.getTransaction(startDate, endDate);
     res.json(transactionList);
 })
 /*

@@ -42,24 +42,17 @@ class MQTTHandler {
   onMQTTConnect() {
     setInterval(() => {
       let payload = {
-        "Time": new Date(),
+        Time: new Date().toISOString(),
         "DS18B20-1": { "Id": "0315A46FF3FF", "Temperature": 13.7 },
         "DS18B20-2": { "Id": "0415A424A8FF", "Temperature": 13.6 }
       };
-
-      console.log("###################")
       Db.insertLog(payload);
-      console.log(payload);
-      console.log("###################")
       this.tree.generate(payload, (hash) => {
         let txObj = {
           logHash: hash,
-          timeStamp: payload.Time.getTime(),
+          timeStamp: new Date(payload.Time).getTime(),
         };
-        console.log("###################")
         this.tx.sendTransaction(txObj);
-        console.log(txObj);
-        console.log("###################")
       });
     }, 60 * 1000)
 
