@@ -1,5 +1,5 @@
 import DashboardPage from "./DashboardPage.vue";
-import HelloWorld from "./HelloWorld.vue";
+import Invoice from "./Invoice.vue";
 export default {
     getPageStructure() {
         return [{
@@ -13,7 +13,7 @@ export default {
             path: "invoice",
             name: "Invoice for Devices",
             icon: "icon-settings",
-            component: HelloWorld,
+            component: Invoice,
             subpages: []
         }
         ];

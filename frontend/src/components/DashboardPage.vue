@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="grey lighten-5">
     <v-row class="mb-9">
       <v-col cols="4">
         <v-card class="info-box" elevation="3" tile>
@@ -99,7 +99,6 @@ export default {
       },
       timeProps: {
         useSeconds: true,
-        //smAndUp: true,
         scrollable: true,
         ampmInTitle: true,
         format: "24hr",
@@ -126,9 +125,6 @@ export default {
     async verify() {
       const startDate = this.$refs["startDate"].selectedDatetime.toISOString();
       const endDate = this.$refs["endDate"].selectedDatetime.toISOString();
-
-      console.log(startDate);
-      console.log(endDate);
       this.$root.$emit("showBusyIndicator", true);
 
       const requestOptions = {

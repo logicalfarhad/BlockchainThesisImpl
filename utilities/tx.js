@@ -28,13 +28,13 @@ class TransactionUtil {
       let value = await contract.methods.getLogbyId(i).call();
 
       let timestamp = parseInt(value[1], 10);
-        if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
-      let tx = {
-        logHash: value[0],
-        timeStamp: timestamp,
-      };
-      transactionList.push(tx);
-         }
+      if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
+        let tx = {
+          logHash: value[0],
+          timeStamp: timestamp,
+        };
+        transactionList.push(tx);
+      }
     }
     return transactionList;
   }

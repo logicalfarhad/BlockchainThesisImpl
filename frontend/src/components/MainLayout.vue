@@ -94,20 +94,20 @@ export default {
 
 <style>
 .main-header {
-    width: 100%;
-    height: 50px;
+  width: 100%;
+  height: 50px;
 }
 
 .main-content {
-    margin-left: 30px;
-    margin-right: 30px;
+  margin-left: 30px;
+  margin-right: 30px;
 }
 
 .main-title {
-    color: var(--v-text1-base);
+  color: var(--v-text1-base);
 }
 
 .v-toolbar__content .v-icon {
-    color: var(--v-text1-base) !important;
+  color: var(--v-text1-base) !important;
 }
 </style>

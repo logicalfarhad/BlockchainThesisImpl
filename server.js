@@ -33,9 +33,9 @@ app.post("/getLogsfromDb", (req, res) => {
         documents.forEach((doc) => {
             tree.generate(doc, (hash) => {
                 let timestamp = new Date(doc.Time).getTime();
-                 if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
-                hashArr.push({ logHash: hash, timeStamp: timestamp });
-                  }
+                if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
+                    hashArr.push({ logHash: hash, timeStamp: timestamp });
+                }
             })
         });
         res.json(hashArr);
