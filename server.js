@@ -42,9 +42,16 @@ app.post("/getLogsfromDb", (req, res) => {
     });
 });
 
+app.post("/getSensorData", (req, res) => {
+    const { startDate, endDate } = req.body;
+    db.getSensorData(startDate, endDate, (sensorData) => {
+        res.json(sensorData);
+    })
+})
+
+
 app.get("/removeDb", (req, res) => {
     db.removeAll((result) => {
-        console.log(result.deletedCount);
         res.json(result);
     })
 })
@@ -67,7 +74,6 @@ db.connectDB(async (err) => {
         console.error(err);
         process.exit();
     }
-
     // start the Express server
     server.listen(port, () => Logger.info(`Express Listening on port ${port}`));
 });

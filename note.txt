@@ -1,0 +1,26 @@
+db.collection.aggregate([
+  {
+    $group: {
+      _id: "$idx",
+      totalVoltage: {
+        $avg: "$v"
+      },
+      totalTime: {
+        "$avg": "$ts"
+      }
+    }
+  },
+  {
+    "$project": {
+      port: "$_id",
+      _id: 0,
+      totalVoltage: "$totalVoltage",
+      totalTime: "$totalTime"
+    }
+  },
+  {
+    $sort: {
+      port: 1
+    }
+  },
+])

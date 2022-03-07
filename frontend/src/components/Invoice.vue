@@ -91,6 +91,10 @@
               </v-datetime-picker>
             </v-flex>
           </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary lighten-1" @click="clear">CLEAR</v-btn>
+            <v-btn color="primary darken-1" @click="calculate">Calculate</v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -154,104 +158,55 @@ export default {
         text: "Device Port",
         align: "start",
         sortable: false,
-        value: "name",
+        value: "port",
       },
-      { text: "Calories", value: "calories" },
-      { text: "Fat (g)", value: "fat" },
-      { text: "Carbs (g)", value: "carbs" },
-      { text: "Protein (g)", value: "protein" },
-      { text: "Iron (%)", value: "iron" },
+      { text: "Avg. Voltage", value: "avgVoltage" },
+      { text: "Avg. Time", value: "avgTime" },
     ],
-    desserts: [
-      {
-        name: "Port 1",
-        calories: 159,
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: "1%",
-      },
-      {
-        name: "Port 2",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Port 3",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Port 4",
-        calories: 305,
-        fat: 3.7,
-        carbs: 67,
-        protein: 4.3,
-        iron: "8%",
-      },
-      {
-        name: "Port 5",
-        calories: 356,
-        fat: 16.0,
-        carbs: 49,
-        protein: 3.9,
-        iron: "16%",
-      },
-      {
-        name: "Port 6",
-        calories: 375,
-        fat: 0.0,
-        carbs: 94,
-        protein: 0.0,
-        iron: "0%",
-      },
-      {
-        name: "Port 7",
-        calories: 392,
-        fat: 0.2,
-        carbs: 98,
-        protein: 0,
-        iron: "2%",
-      },
-      {
-        name: "Port 8",
-        calories: 408,
-        fat: 3.2,
-        carbs: 87,
-        protein: 6.5,
-        iron: "45%",
-      },
-    ],
+    desserts: [],
   }),
   methods: {
-    add: function () {
-      // body...
-      this.invoice.products.push({
-        title: this.title,
-        description: this.description,
-        qty: this.qty,
-        price: this.price,
+    async calculate() {
+      const startDate = this.$refs["startDate"].selectedDatetime?.toISOString();
+      const endDate = this.$refs["endDate"].selectedDatetime?.toISOString();
+      this.$root.$emit("showBusyIndicator", true);
+
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate: startDate, endDate: endDate }),
+      };
+      const blockResponse = await fetch(
+        "http://localhost:5000/getSensorData",
+        requestOptions
+      );
+      const sensorData = await blockResponse.json();
+      this.$root.$emit("showBusyIndicator", false);
+      this.desserts = sensorData.map((item) => {
+        return {
+          port: "Port " + item.port,
+          avgVoltage: item.avgVoltage,
+          avgTime: item.avgTime,
+        };
       });
     },
+    clear() {},
+
     getTotal: function () {
-      // body...
       console.log("getTotal");
     },
     getSubTotal: function () {
-      // body...
-      var SubTotal = 0;
-      for (var i = this.invoice.products.length - 1; i >= 0; i--) {
+      let SubTotal = 0;
+      for (let i = this.invoice.products.length - 1; i >= 0; i--) {
         SubTotal +=
           this.invoice.products[i].price * this.invoice.products[i].qty;
       }
       return SubTotal;
     },
+  },
+  created() {
+    // this.desserts = [];
+    console.log(this.desserts);
   },
 };
 </script>

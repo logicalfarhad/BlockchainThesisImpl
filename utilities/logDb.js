@@ -30,6 +30,53 @@ const getLogs = async (callback) => {
     callback(result);
 }
 
+const insertSensorData = async (payload) => {
+    await dbConnection.collection('sensor').insertOne(payload);
+}
+
+const getSensorData = async (startDate, endDate, callback) => {
+    let pipeline = [
+        {
+            $group: {
+                _id: "$idx",
+                avgVoltage: {
+                    $avg: "$v"
+                },
+                avgTime: {
+                    "$avg": "$ts"
+                }
+            }
+        },
+        {
+            $project: {
+                port: "$_id",
+                _id: 0,
+                avgVoltage: "$avgVoltage",
+                avgTime: "$avgTime"
+            }
+        },
+        {
+            $sort: {
+                port: 1
+            }
+        }
+    ];
+
+    if (startDate && endDate) {
+        pipeline.unshift({
+            $match: {
+                timeStamp: {
+                    $gte: new Date(startDate),
+                    $lte: new Date(endDate)
+                }
+            }
+        })
+    }
+    let result = await dbConnection.collection('sensor').aggregate(pipeline).toArray();
+    callback(result);
+}
+
+
 const removeAll = async (callback) => {
     const result = await dbConnection.collection('mqtt').deleteMany();
     callback(result);
@@ -37,8 +84,8 @@ const removeAll = async (callback) => {
 
 module.exports = {
     connectDB,
-    getDB,
+    getDB, insertSensorData,
     disconnectDB,
     removeAll, getLogs,
-    insertLog
+    insertLog, getSensorData
 }

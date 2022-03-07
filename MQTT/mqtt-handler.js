@@ -40,9 +40,10 @@ class MQTTHandler {
   }
 
   onMQTTConnect() {
+    /*
     setInterval(() => {
       let payload = {
-        Time: new Date().toISOString(),
+        "Time": new Date().toISOString(),
         "DS18B20-1": { "Id": "0315A46FF3FF", "Temperature": 13.7 },
         "DS18B20-2": { "Id": "0415A424A8FF", "Temperature": 13.6 }
       };
@@ -54,8 +55,22 @@ class MQTTHandler {
         };
         //   this.tx.sendTransaction(txObj);
       });
-    }, 60 * 1000)
+    }, 60 * 1000);
+    */
 
+    setInterval(() => {
+      let port_payload = {
+        "type": "outlet",
+        "idx": Math.floor(Math.random() * 8) + 1,
+        "v": 0.256,
+        "unit": "A",
+        "field": "current",
+        "cause": "interval",
+        "ts": 6605,
+        "timeStamp": new Date()
+      };
+      Db.insertSensorData(port_payload);
+    }, 1000);
     this.mqttClient.subscribe(Topics.TOPIC_FIT_FRIDGE, { qos: 0 });
   }
 
