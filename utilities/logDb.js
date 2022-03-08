@@ -39,11 +39,11 @@ const getSensorData = async (startDate, endDate, callback) => {
         {
             $group: {
                 _id: "$idx",
-                avgVoltage: {
-                    $avg: "$v"
+                totalVoltage: {
+                    $sum: "$v"
                 },
-                avgTime: {
-                    "$avg": "$ts"
+                totalTime: {
+                    $sum: "$ts"
                 }
             }
         },
@@ -51,8 +51,8 @@ const getSensorData = async (startDate, endDate, callback) => {
             $project: {
                 port: "$_id",
                 _id: 0,
-                avgVoltage: "$avgVoltage",
-                avgTime: "$avgTime"
+                totalVoltage: "$totalVoltage",
+                totalTime: "$totalTime"
             }
         },
         {
@@ -72,7 +72,10 @@ const getSensorData = async (startDate, endDate, callback) => {
             }
         })
     }
-    let result = await dbConnection.collection('sensor').aggregate(pipeline).toArray();
+    let result = await dbConnection.collection('sensor')
+        .aggregate(pipeline, {
+            allowDiskUse: true
+        }).toArray();
     callback(result);
 }
 

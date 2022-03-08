@@ -13,11 +13,14 @@
 
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title>Sub Total :€{{ getSubTotal() }}</v-card-title>
+          <v-card-title
+            >Sub Total: €
+            {{ subTotal }}
+          </v-card-title>
           <v-card-text>
-            TAX: {{ invoice.taxRate * 100 }}%<br />
+            VAT: {{ invoice.taxRate * 100 }}%<br />
             <v-spacer></v-spacer>
-            Total: €{{ getSubTotal() + getSubTotal() * invoice.taxRate }}
+            Total :€{{ total }}
           </v-card-text>
         </v-card>
       </v-col>
@@ -36,9 +39,15 @@
     </v-row>
     <v-row>
       <v-col md="8">
+        <v-switch
+          v-model="cycle"
+          @change="toggleActive(cycle)"
+          :label="invoiceType"
+          inset
+        ></v-switch>
         <v-data-table
           :headers="headers"
-          :items="desserts"
+          :items="sensors"
           dense
           class="elevation-1"
         ></v-data-table>
@@ -106,6 +115,10 @@ export default {
   name: "Invoice",
   data: () => ({
     startDate: null,
+    cycle: false,
+    total: 0.0,
+    subTotal: 0.0,
+    invoiceType: "Voltage based Invoice",
     endDate: null,
     textFieldProps1: {
       prependIcon: "event",
@@ -129,16 +142,7 @@ export default {
       ampmInTitle: true,
       format: "24hr",
     },
-    title: "",
-    description: "",
-    qty: 1,
-    price: 10,
     invoice: {
-      number: 123,
-      paid_at: null,
-      currency: "EUR",
-      paid: false,
-      data: new Date(),
       taxRate: 0.19,
       from: {
         name: "Fraunhofer FIT",
@@ -160,10 +164,10 @@ export default {
         sortable: false,
         value: "port",
       },
-      { text: "Avg. Voltage", value: "avgVoltage" },
-      { text: "Avg. Time", value: "avgTime" },
+      { text: "Total Voltage", value: "totalVoltage" },
+      { text: "Total Time", value: "totalTime" },
     ],
-    desserts: [],
+    sensors: [],
   }),
   methods: {
     async calculate() {
@@ -182,31 +186,38 @@ export default {
       );
       const sensorData = await blockResponse.json();
       this.$root.$emit("showBusyIndicator", false);
-      this.desserts = sensorData.map((item) => {
+      this.sensors = sensorData.map((item) => {
         return {
           port: "Port " + item.port,
-          avgVoltage: item.avgVoltage,
-          avgTime: item.avgTime,
+          totalVoltage: item.totalVoltage,
+          totalTime: item.totalTime,
         };
       });
+
+      if (this.cycle) {
+        const sum = this.sensors
+          .map((item) => item.totalVoltage)
+          .reduce((prev, curr) => prev + curr, 0);
+
+        this.total = sum;
+        this.subTotal = sum + sum * this.invoice.taxRate;
+      } else {
+        const sum = this.sensors
+          .map((item) => item.totalTime)
+          .reduce((prev, curr) => prev + curr, 0);
+
+        this.total = sum / 1000;
+        this.subTotal = this.total + this.total * this.invoice.taxRate;
+      }
+    },
+    toggleActive(item) {
+      if (item) {
+        this.invoiceType = "Time based Invoice";
+      } else {
+        this.invoiceType = "Voltage based Invoice";
+      }
     },
     clear() {},
-
-    getTotal: function () {
-      console.log("getTotal");
-    },
-    getSubTotal: function () {
-      let SubTotal = 0;
-      for (let i = this.invoice.products.length - 1; i >= 0; i--) {
-        SubTotal +=
-          this.invoice.products[i].price * this.invoice.products[i].qty;
-      }
-      return SubTotal;
-    },
-  },
-  created() {
-    // this.desserts = [];
-    console.log(this.desserts);
   },
 };
 </script>

@@ -70,7 +70,7 @@ class MQTTHandler {
         "timeStamp": new Date()
       };
       Db.insertSensorData(port_payload);
-    }, 1000);
+    }, 60 * 1000);
     this.mqttClient.subscribe(Topics.TOPIC_FIT_FRIDGE, { qos: 0 });
   }
 
