@@ -69,13 +69,17 @@
             ></v-data-table>
           </v-card-text>
         </v-card>
+         <Grafico ref="grafico" />
       </v-col>
     </v-row>
   </v-container>
 </template>
 <script>
+import Grafico from "./Grafico";
 export default {
-  components: {},
+  components: {
+    Grafico,
+  },
   data() {
     return {
       title: "Event Logging Dashboard",
@@ -117,12 +121,13 @@ export default {
         },
         { text: "Block timestamp", sortable: false, value: "blocktimeStamp" },
         { text: "Db timestamp", sortable: false, value: "dbtimeStamp" },
-        { text: "Same", sortable: true, value: "same" },
+        { text: "Matched", sortable: true, value: "matched" },
       ],
     };
   },
   methods: {
     async verify() {
+      this.logList = [];
       const startDate = this.$refs["startDate"].selectedDatetime.toISOString();
       const endDate = this.$refs["endDate"].selectedDatetime.toISOString();
       this.$root.$emit("showBusyIndicator", true);
@@ -157,7 +162,7 @@ export default {
               dblogHash: dbdata[i].logHash,
               blocktimeStamp: blockData[i].timeStamp,
               dbtimeStamp: dbdata[i].timeStamp.toString(),
-              same: true,
+              matched: true,
             });
           } else {
             this.logList.push({
@@ -165,7 +170,7 @@ export default {
               dblogHash: dbdata[i].logHash,
               blocktimeStamp: blockData[i].timeStamp,
               dbtimeStamp: dbdata[i].timeStamp.toString(),
-              same: false,
+              matched: false,
             });
           }
         }

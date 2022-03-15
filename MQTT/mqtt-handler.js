@@ -40,23 +40,23 @@ class MQTTHandler {
   }
 
   onMQTTConnect() {
-    /*
+
     setInterval(() => {
       let payload = {
         "Time": new Date().toISOString(),
         "DS18B20-1": { "Id": "0315A46FF3FF", "Temperature": 13.7 },
         "DS18B20-2": { "Id": "0415A424A8FF", "Temperature": 13.6 }
       };
-      //  Db.insertLog(payload);
+      Db.insertLog(payload);
       this.tree.generate(payload, (hash) => {
         let txObj = {
           logHash: hash,
           timeStamp: new Date(payload.Time).getTime(),
         };
-        //   this.tx.sendTransaction(txObj);
+        this.tx.sendTransaction(txObj);
       });
     }, 60 * 1000);
-    */
+
 
     setInterval(() => {
       let port_payload = {
@@ -71,6 +71,7 @@ class MQTTHandler {
       };
       Db.insertSensorData(port_payload);
     }, 60 * 1000);
+
     this.mqttClient.subscribe(Topics.TOPIC_FIT_FRIDGE, { qos: 0 });
   }
 

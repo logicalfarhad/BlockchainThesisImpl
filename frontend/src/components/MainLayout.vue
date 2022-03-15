@@ -56,7 +56,7 @@ export default {
     breadcrumbs: [],
     showBusyIndicator: false,
     blockNavigationMenu: false,
-    uiTitle: "DApp for Expert Power Control",
+    uiTitle: "Expert Power Control",
     errorSnackbar: false,
     errorText: "",
   }),

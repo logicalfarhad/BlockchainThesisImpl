@@ -164,13 +164,14 @@ export default {
         sortable: false,
         value: "port",
       },
-      { text: "Total Voltage", value: "totalVoltage" },
+      { text: "Total Current", value: "totalVoltage" },
       { text: "Total Time", value: "totalTime" },
     ],
     sensors: [],
   }),
   methods: {
     async calculate() {
+      this.sensors = [];
       const startDate = this.$refs["startDate"].selectedDatetime?.toISOString();
       const endDate = this.$refs["endDate"].selectedDatetime?.toISOString();
       this.$root.$emit("showBusyIndicator", true);
