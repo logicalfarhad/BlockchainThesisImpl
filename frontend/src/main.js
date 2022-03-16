@@ -13,6 +13,7 @@ const router = new VueRouter({
   linkExactActiveClass: "nav-item active"
 });
 
+Vue.use(require('vue-moment'));
 Vue.use(DateTimePicker);
 Vue.use(VueRouter);
 

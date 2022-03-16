@@ -1,6 +1,6 @@
 <template>
   <v-container class="grey lighten-5">
-    <v-row class="mb-9">
+    <v-row class="mb-10">
       <v-col cols="4">
         <v-card class="info-box" elevation="3" tile>
           <v-card-title>Choose date range</v-card-title>
@@ -55,6 +55,13 @@
             <v-btn color="primary darken-1" @click="verify">Verify</v-btn>
           </v-card-actions>
         </v-card>
+        <br />
+        <v-card>
+          <v-card-title> </v-card-title>
+          <v-card-text>
+            <Grafico :data="data" :options="options" />
+          </v-card-text>
+        </v-card>
       </v-col>
       <v-col cols="7">
         <v-card class="info-box" elevation="3" tile>
@@ -66,12 +73,104 @@
               :items="logList"
               :items-per-page="5"
               class="elevation-1"
-            ></v-data-table>
+            >
+              <template v-slot:item="{ item }">
+                <tr>
+                  <td>
+                    {{
+                      item.dbtimeStamp | moment("dddd, MMMM Do YYYY, h:mm:ss a")
+                    }}
+                  </td>
+                  <td v-if="item.matched">
+                    <v-icon color="green">check_circle</v-icon>
+                  </td>
+                  <td v-else>
+                    <v-icon color="red">error</v-icon>
+                  </td>
+                  <td>
+                    <v-btn class="pr-5" icon @click="save(item)">
+                      <v-icon color="primary">format_list_bulleted</v-icon>
+                    </v-btn>
+                  </td>
+                </tr>
+              </template>
+            </v-data-table>
           </v-card-text>
         </v-card>
-         <Grafico ref="grafico" />
       </v-col>
     </v-row>
+    <v-row class="mb-10">
+      <v-col cols="7"> </v-col>
+      <v-col cols="3"> </v-col>
+    </v-row>
+
+    <v-dialog v-model="dialog" width="600">
+      <v-card>
+        <v-card-title class="text-h5 grey lighten-2">
+          Information
+        </v-card-title>
+
+        <v-card-text v-if="infoItem">
+          <v-list-item two-line>
+            <v-list-item-content>
+              <v-list-item-title>Hash from Blockchain</v-list-item-title>
+              <v-list-item-subtitle>{{
+                infoItem.blocklogHash
+              }}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item two-line>
+            <v-list-item-content>
+              <v-list-item-title>Hash from Database</v-list-item-title>
+              <v-list-item-subtitle>{{
+                infoItem.dblogHash
+              }}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item two-line>
+            <v-list-item-content>
+              <v-list-item-title>Time from Blockchain</v-list-item-title>
+              <v-list-item-subtitle>{{
+                infoItem.blocktimeStamp
+                  | moment("dddd, MMMM Do YYYY, h:mm:ss a")
+              }}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item two-line>
+            <v-list-item-content>
+              <v-list-item-title>Time from Database</v-list-item-title>
+              <v-list-item-subtitle>
+                {{
+                  infoItem.dbtimeStamp | moment("dddd, MMMM Do YYYY, h:mm:ss a")
+                }}
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item two-line>
+            <v-list-item-content>
+              <v-list-item-title>Matched</v-list-item-title>
+              <v-list-item-subtitle v-if="infoItem.matched">
+                <v-icon color="green">check_circle</v-icon>
+              </v-list-item-subtitle>
+              <v-list-item-subtitle v-else>
+                <v-icon color="red">error</v-icon>
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="dialog = false"> OK </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 <script>
@@ -82,9 +181,15 @@ export default {
   },
   data() {
     return {
+      dialog: false,
       title: "Event Logging Dashboard",
       startDate: null,
+      infoItem: null,
       endDate: null,
+      data: [["Match Group", "Match Count"]],
+      options: {
+        height: 200,
+      },
       textFieldProps1: {
         prependIcon: "event",
         dense: true,
@@ -109,25 +214,20 @@ export default {
       },
       logList: [],
       headers: [
-        {
-          text: "Block Loghash",
-          sortable: false,
-          value: "blocklogHash",
-        },
-        {
-          text: "Db Loghash",
-          sortable: false,
-          value: "dblogHash",
-        },
-        { text: "Block timestamp", sortable: false, value: "blocktimeStamp" },
-        { text: "Db timestamp", sortable: false, value: "dbtimeStamp" },
+        { text: "Time", sortable: false, value: "blocktimeStamp" },
         { text: "Matched", sortable: true, value: "matched" },
+        { text: "Info" },
       ],
     };
   },
   methods: {
+    save(item) {
+      this.infoItem = item;
+      this.dialog = true;
+    },
     async verify() {
       this.logList = [];
+      this.data = [["Match Group", "Match Count"]];
       const startDate = this.$refs["startDate"].selectedDatetime.toISOString();
       const endDate = this.$refs["endDate"].selectedDatetime.toISOString();
       this.$root.$emit("showBusyIndicator", true);
@@ -153,6 +253,10 @@ export default {
 
       if (blockData.length === dbdata.length) {
         for (let i = 0; i < dbdata.length; i++) {
+          let parsedDbDate = new Date();
+          parsedDbDate.setTime(dbdata[i].timeStamp);
+          let parsedBlockDate = new Date();
+          parsedBlockDate.setTime(blockData[i].timeStamp);
           if (
             blockData[i].logHash == dbdata[i].logHash &&
             blockData[i].timeStamp == dbdata[i].timeStamp
@@ -160,21 +264,29 @@ export default {
             this.logList.push({
               blocklogHash: blockData[i].logHash,
               dblogHash: dbdata[i].logHash,
-              blocktimeStamp: blockData[i].timeStamp,
-              dbtimeStamp: dbdata[i].timeStamp.toString(),
+              dbtimeStamp: parsedDbDate,
+              blocktimeStamp: parsedBlockDate,
               matched: true,
             });
           } else {
             this.logList.push({
               blocklogHash: blockData[i].logHash,
               dblogHash: dbdata[i].logHash,
-              blocktimeStamp: blockData[i].timeStamp,
-              dbtimeStamp: dbdata[i].timeStamp.toString(),
+              dbtimeStamp: parsedDbDate,
+              blocktimeStamp: parsedBlockDate,
               matched: false,
             });
           }
         }
       }
+
+      let totalMatched = this.logList.filter((e) => e.matched === true).length;
+      let didnotMatch = this.logList.length - totalMatched;
+      this.data.push(
+        //["Match Group", "Match Count"],
+        ["Matched", totalMatched],
+        ["Did not match", didnotMatch]
+      );
     },
     clear() {},
   },
