@@ -7,8 +7,8 @@ contract EnergyPrice {
     event priceChanged(string oldValue, string newValue);
 
     function setCost(string memory _price) public {
-        price = _price;
         emit priceChanged(price, _price);
+        price = _price;
     }
 
     function getPrice() public view returns (string memory) {

@@ -14,10 +14,15 @@ class TransactionUtil {
   async setEnergyPrice(payload) {
     let gasPrize = await this.estimateEnergyPriceGas(payload);
     const contract = await this.getEnergyPriceContract();
-    const receipt = await contract.methods
-      .setCost(payload)
-      .send({ from: address, gas: gasPrize });
-    console.log(receipt);
+
+    let receipt;
+    try {
+      receipt = await contract.methods.setCost(payload)
+        .send({ from: address, gas: gasPrize })
+    } catch (err) {
+      console.log(err)
+    }
+    return receipt;
   }
   async getEnergyPrice() {
     const contract = await this.getEnergyPriceContract();
@@ -34,7 +39,7 @@ class TransactionUtil {
     console.log(receipt);
   }
 
-  
+
   async getTransaction(startDate, endDate) {
     const contract = await this.getContract();
     let logCount = await contract.methods.logCount().call();
@@ -89,13 +94,6 @@ class TransactionUtil {
       deployedNetwork.address
     );
     return contract;
-  }
-  getAllDaysInMonth(month, year) {
-    let dates = Array.from(
-      { length: new Date(year, month, 0).getDate() },
-      (_, i) => new Date(year, month - 1, i + 1).getTime()
-    );
-    return dates;
   }
 }
 module.exports = TransactionUtil;

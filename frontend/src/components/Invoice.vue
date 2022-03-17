@@ -221,15 +221,17 @@ export default {
         requestOptions
       );
       let response = await priceResponse.json();
-      console.log(response);
-
-      this.basePrice = 0;
       this.$root.$emit("showBusyIndicator", false);
-
-      //console.log(priceData);
+      console.log(response);
       this.unitPrice = this.basePrice;
     },
-    calculatePrice() {},
+    calculatePrice() {
+      const sum = this.sensors
+        .map((item) => item.TotalKWh)
+        .reduce((prev, curr) => prev + curr, 0);
+      this.total = sum * this.unitPrice / 100;
+      console.log(this.total);
+    },
     getTotalKWh(item) {
       let totalHours = item.totalTime / 3600;
       let totalCurrent = (item.totalVoltage * 230) / 1000;
