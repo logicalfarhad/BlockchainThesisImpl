@@ -3,7 +3,7 @@
     <v-row justify="center">
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title>From: {{ invoice.from.name }}</v-card-title>
+          <v-card-title>{{ invoice.from.name }}</v-card-title>
           <v-card-text>
             {{ invoice.from.address }} <br />
             {{ invoice.from.details }} <br />
@@ -13,24 +13,32 @@
 
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title
-            >Sub Total: €
-            {{ subTotal }}
-          </v-card-title>
+          <v-card-title> Total :€{{ total }} </v-card-title>
           <v-card-text>
-            VAT: {{ invoice.taxRate * 100 }}%<br />
             <v-spacer></v-spacer>
-            Total :€{{ total }}
           </v-card-text>
         </v-card>
       </v-col>
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title>To : {{ invoice.to.name }}</v-card-title>
+          <v-card-title>{{ invoice.to.name }}</v-card-title>
           <v-card-text>
-            {{ invoice.to.address }} <br />
-            {{ invoice.to.details }} <br />
+            <v-flex xs8>
+              <v-text-field
+                label="In cents"
+                value="0"
+                prefix="€"
+                v-model="basePrice"
+              ></v-text-field>
+            </v-flex>
+            Price in smart contract: {{ unitPrice }} <br />
           </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary lighten-1" @click="calculatePrice"
+              >Calculate</v-btn
+            >
+            <v-btn color="primary darken-1" @click="setPrice">Set Price</v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -39,12 +47,6 @@
     </v-row>
     <v-row>
       <v-col md="8">
-        <v-switch
-          v-model="cycle"
-          @change="toggleActive(cycle)"
-          :label="invoiceType"
-          inset
-        ></v-switch>
         <v-data-table
           :headers="headers"
           :items="sensors"
@@ -102,7 +104,9 @@
           </v-card-text>
           <v-card-actions>
             <v-btn color="primary lighten-1" @click="clear">CLEAR</v-btn>
-            <v-btn color="primary darken-1" @click="calculate">Calculate</v-btn>
+            <v-btn color="primary darken-1" @click="createInvoice"
+              >Create</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-col>
@@ -115,10 +119,10 @@ export default {
   name: "Invoice",
   data: () => ({
     startDate: null,
-    cycle: false,
-    total: 0.0,
-    subTotal: 0.0,
-    invoiceType: "Voltage based Invoice",
+    total: 0,
+    unitPrice: 0,
+    basePrice: 0,
+    invoiceType: "Invoice",
     endDate: null,
     textFieldProps1: {
       prependIcon: "event",
@@ -143,19 +147,17 @@ export default {
       format: "24hr",
     },
     invoice: {
-      taxRate: 0.19,
       from: {
-        name: "Fraunhofer FIT",
+        name: "Invoice from Fraunhofer FIT",
         address: "Schloss Birlinghoven",
         details: "Konrad-Adenauer-Straße ",
         postcode: "53757 Sankt Augustin",
       },
       to: {
-        name: "Gude Systems GmbH",
+        name: "Set eletricity price for per KWh",
         address: "Von-der-Wettern-Straße 23",
         details: "51149 Köln",
       },
-      products: [{ title: "test", description: "lorem", qty: 2, price: 20 }],
     },
     headers: [
       {
@@ -164,13 +166,19 @@ export default {
         sortable: false,
         value: "port",
       },
-      { text: "Total Current", value: "totalVoltage" },
-      { text: "Total Time", value: "totalTime" },
+      { text: "Total Current(kWh)", value: "totalCurrent" },
+      { text: "Total Time(HH:mm:ss)", value: "totalTime" },
+      { text: "Total KWh", value: "TotalKWh" },
     ],
     sensors: [],
   }),
+  async created() {
+    let priceResponse = await fetch("http://localhost:5000/getPrice");
+    let price = await priceResponse.json();
+    this.unitPrice = parseInt(price, 10);
+  },
   methods: {
-    async calculate() {
+    async createInvoice() {
       this.sensors = [];
       const startDate = this.$refs["startDate"].selectedDatetime?.toISOString();
       const endDate = this.$refs["endDate"].selectedDatetime?.toISOString();
@@ -186,39 +194,48 @@ export default {
         requestOptions
       );
       const sensorData = await blockResponse.json();
+
       this.$root.$emit("showBusyIndicator", false);
       this.sensors = sensorData.map((item) => {
         return {
           port: "Port " + item.port,
-          totalVoltage: item.totalVoltage,
-          totalTime: item.totalTime,
+          totalCurrent: (item.totalVoltage * 230) / 1000,
+          totalTimeInHours: item.totalTime / 3600,
+          totalTime: this.$moment.utc(item.totalTime * 1000).format("HH:mm:ss"),
+          TotalKWh: this.getTotalKWh(item),
         };
       });
-
-      if (this.cycle) {
-        const sum = this.sensors
-          .map((item) => item.totalVoltage)
-          .reduce((prev, curr) => prev + curr, 0);
-
-        this.total = sum;
-        this.subTotal = sum + sum * this.invoice.taxRate;
-      } else {
-        const sum = this.sensors
-          .map((item) => item.totalTime)
-          .reduce((prev, curr) => prev + curr, 0);
-
-        this.total = sum / 1000;
-        this.subTotal = this.total + this.total * this.invoice.taxRate;
-      }
-    },
-    toggleActive(item) {
-      if (item) {
-        this.invoiceType = "Time based Invoice";
-      } else {
-        this.invoiceType = "Voltage based Invoice";
-      }
+      this.total = 0;
     },
     clear() {},
+    async setPrice() {
+      try {
+        this.$root.$emit("showBusyIndicator", true);
+        const requestOptions = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ price: this.basePrice.toString() }),
+        };
+        let priceResponse = await fetch(
+          "http://localhost:5000/setPrice",
+          requestOptions
+        );
+        await priceResponse.json();
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.$root.$emit("showBusyIndicator", false);
+      }
+
+      //console.log(priceData);
+      this.unitPrice = this.basePrice;
+    },
+    calculatePrice() {},
+    getTotalKWh(item) {
+      let totalHours = item.totalTime / 3600;
+      let totalCurrent = (item.totalVoltage * 230) / 1000;
+      return totalCurrent / totalHours;
+    },
   },
 };
 </script>

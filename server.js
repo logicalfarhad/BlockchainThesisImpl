@@ -49,6 +49,26 @@ app.post("/getSensorData", (req, res) => {
     })
 })
 
+app.post("/setPrice", async (req, res) => {
+    const { price } = req.body;
+    try {
+        await tx.setEnergyPrice(price);
+        res.json(true);
+    } catch (e) {
+        res.json(false);
+    }
+})
+
+app.get("/getPrice", async (req, res) => {
+    let price = 0;
+    try {
+        price = await tx.getEnergyPrice(price);
+        res.json(price);
+    } catch (e) {
+        console.log(e);
+        res.json(false);
+    }
+})
 
 app.get("/removeDb", (req, res) => {
     db.removeAll((result) => {

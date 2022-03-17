@@ -82,14 +82,14 @@
                     }}
                   </td>
                   <td v-if="item.matched">
-                    <v-icon color="green">check_circle</v-icon>
+                    <v-icon color="green">check_circle_outline</v-icon>
                   </td>
                   <td v-else>
-                    <v-icon color="red">error</v-icon>
+                    <v-icon color="red">close</v-icon>
                   </td>
                   <td>
                     <v-btn class="pr-5" icon @click="save(item)">
-                      <v-icon color="primary">format_list_bulleted</v-icon>
+                      <v-icon color="primary">visibility</v-icon>
                     </v-btn>
                   </td>
                 </tr>
@@ -152,13 +152,12 @@
 
           <v-list-item two-line>
             <v-list-item-content>
-              <v-list-item-title>Matched</v-list-item-title>
-              <v-list-item-subtitle v-if="infoItem.matched">
-                <v-icon color="green">check_circle</v-icon>
-              </v-list-item-subtitle>
-              <v-list-item-subtitle v-else>
-                <v-icon color="red">error</v-icon>
-              </v-list-item-subtitle>
+              <v-list-item-title v-if="infoItem.matched"
+                >Matched:
+                <v-icon color="green">verified</v-icon></v-list-item-title
+              ><v-list-item-title v-else
+                >Matched: <v-icon color="red">highlight_off</v-icon></v-list-item-title
+              >
             </v-list-item-content>
           </v-list-item>
         </v-card-text>
@@ -283,7 +282,6 @@ export default {
       let totalMatched = this.logList.filter((e) => e.matched === true).length;
       let didnotMatch = this.logList.length - totalMatched;
       this.data.push(
-        //["Match Group", "Match Count"],
         ["Matched", totalMatched],
         ["Did not match", didnotMatch]
       );
