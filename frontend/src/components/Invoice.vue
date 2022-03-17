@@ -175,7 +175,8 @@ export default {
   async created() {
     let priceResponse = await fetch("http://localhost:5000/getPrice");
     let price = await priceResponse.json();
-    this.unitPrice = parseInt(price, 10);
+    if (price === "") this.unitPrice = 0;
+    else this.unitPrice = parseFloat(price);
   },
   methods: {
     async createInvoice() {
@@ -209,23 +210,21 @@ export default {
     },
     clear() {},
     async setPrice() {
-      try {
-        this.$root.$emit("showBusyIndicator", true);
-        const requestOptions = {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ price: this.basePrice.toString() }),
-        };
-        let priceResponse = await fetch(
-          "http://localhost:5000/setPrice",
-          requestOptions
-        );
-        await priceResponse.json();
-      } catch (error) {
-        console.log(error);
-      } finally {
-        this.$root.$emit("showBusyIndicator", false);
-      }
+      this.$root.$emit("showBusyIndicator", true);
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ price: this.basePrice.toString() }),
+      };
+      let priceResponse = await fetch(
+        "http://localhost:5000/setPrice",
+        requestOptions
+      );
+      let response = await priceResponse.json();
+      console.log(response);
+
+      this.basePrice = 0;
+      this.$root.$emit("showBusyIndicator", false);
 
       //console.log(priceData);
       this.unitPrice = this.basePrice;
