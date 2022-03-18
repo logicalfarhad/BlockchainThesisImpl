@@ -49,11 +49,14 @@ app.post("/getSensorData", (req, res) => {
     })
 })
 
+/*
 app.post("/setPrice", async (req, res) => {
     const { price } = req.body;
     let response = await tx.setEnergyPrice(price);
     res.json(response.status);
 })
+*/
+
 
 app.get("/getPrice", async (req, res) => {
     let price = 0;

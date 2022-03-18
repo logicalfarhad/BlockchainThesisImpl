@@ -59,7 +59,7 @@
         <v-card>
           <v-card-title> </v-card-title>
           <v-card-text>
-            <Grafico :data="data" :options="options" />
+            <Chart :data="data" :options="options" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -173,10 +173,10 @@
   </v-container>
 </template>
 <script>
-import Grafico from "./Grafico";
+import Chart from "./Chart";
 export default {
   components: {
-    Grafico,
+    Chart,
   },
   data() {
     return {

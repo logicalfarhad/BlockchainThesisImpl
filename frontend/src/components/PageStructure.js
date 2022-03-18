@@ -1,5 +1,6 @@
 import DashboardPage from "./DashboardPage.vue";
 import Invoice from "./Invoice.vue";
+import DigitalTwin from "./DigitalTwin.vue";
 export default {
     getPageStructure() {
         return [{
@@ -14,6 +15,13 @@ export default {
             name: "Invoice for Devices",
             icon: "icon-settings",
             component: Invoice,
+            subpages: []
+        },
+        {
+            path: "digital-twin",
+            name: "Digital Twin",
+            icon: "icon-dashboard",
+            component: DigitalTwin,
             subpages: []
         }
         ];

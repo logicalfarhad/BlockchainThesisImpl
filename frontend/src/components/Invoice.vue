@@ -115,10 +115,13 @@
 </template>
 
 <script>
+import { TransactionUtil } from "../utils/tx";
+
 export default {
   name: "Invoice",
   data: () => ({
     startDate: null,
+    tx: null,
     total: 0,
     unitPrice: 0,
     basePrice: 0,
@@ -177,6 +180,8 @@ export default {
     let price = await priceResponse.json();
     if (price === "") this.unitPrice = 0;
     else this.unitPrice = parseFloat(price);
+
+    this.tx = new TransactionUtil();
   },
   methods: {
     async createInvoice() {
@@ -211,25 +216,24 @@ export default {
     clear() {},
     async setPrice() {
       this.$root.$emit("showBusyIndicator", true);
-      const requestOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ price: this.basePrice.toString() }),
-      };
-      let priceResponse = await fetch(
-        "http://localhost:5000/setPrice",
-        requestOptions
-      );
-      let response = await priceResponse.json();
-      this.$root.$emit("showBusyIndicator", false);
-      console.log(response);
-      this.unitPrice = this.basePrice;
+      try {
+        let response = await this.tx.sendTransaction(this.basePrice.toString());
+        console.log(response);
+        if (response.status) {
+          this.unitPrice = this.basePrice;
+          this.basePrice = 0;
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.$root.$emit("showBusyIndicator", false);
+      }
     },
     calculatePrice() {
       const sum = this.sensors
         .map((item) => item.TotalKWh)
         .reduce((prev, curr) => prev + curr, 0);
-      this.total = sum * this.unitPrice / 100;
+      this.total = (sum * this.unitPrice) / 100;
       console.log(this.total);
     },
     getTotalKWh(item) {
