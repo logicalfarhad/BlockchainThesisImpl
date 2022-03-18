@@ -5,6 +5,7 @@ import vuetify from './plugins/vuetify';
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import routes from "./router/routes";
 import DateTimePicker from 'vuetify-datetime-picker';
+import { Plugin } from 'vue-fragment'
 
 // configure router
 const router = new VueRouter({
@@ -13,6 +14,8 @@ const router = new VueRouter({
   linkExactActiveClass: "nav-item active"
 });
 
+
+Vue.use(Plugin)
 Vue.use(require('vue-moment'));
 Vue.use(DateTimePicker);
 Vue.use(VueRouter);

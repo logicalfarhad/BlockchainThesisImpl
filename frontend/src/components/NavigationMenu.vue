@@ -161,7 +161,6 @@ export default {
 .navigation-menu .v-icon {
   color: white !important;
 }
-
 .v-list-item__icon {
   font-family: "icons";
   font-size: 30px;

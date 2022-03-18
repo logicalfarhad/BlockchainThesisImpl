@@ -37,7 +37,9 @@ kwh*current*voltage*time
 Per kw/h 
 Should be saved in smart contract. 20euros. 
 
-Task 1: Finish the calculation
+Task 1: Finish the calculation #done
+Task 2: Digital Twin UI port switching #done
+Task 3: Build smart contract for digital twin: #due
 
 
 
