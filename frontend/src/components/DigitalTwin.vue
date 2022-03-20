@@ -111,6 +111,8 @@ export default {
       let receipt = await this.tx.sendTransaction(obj);
       console.log(receipt);
       this.$root.$emit("showBusyIndicator", false);
+
+      
     },
   },
 };

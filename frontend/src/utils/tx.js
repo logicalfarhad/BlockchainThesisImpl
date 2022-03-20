@@ -24,6 +24,14 @@ export class TransactionUtil {
                 .changePortState(payload.i, payload.j, payload.state, payload._eventMsg)
                 .send({ from: addresses[0], gas: gasPrize });
 
+            let options = {
+                fromBlock: 0,                  //Number || "earliest" || "pending" || "latest"
+                toBlock: 'latest'
+            };
+
+            contract.getPastEvents('portEvent', options)
+                .then(results => console.log(results))
+                .catch(err => console.log(err));
             return receipt;
         }
 
