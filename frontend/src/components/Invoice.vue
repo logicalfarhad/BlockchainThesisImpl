@@ -182,6 +182,7 @@ export default {
     else this.unitPrice = parseFloat(price);
 
     this.tx = new TransactionUtil();
+    this.tx.TYPE='energyContract';
   },
   methods: {
     async createInvoice() {
@@ -217,7 +218,9 @@ export default {
     async setPrice() {
       this.$root.$emit("showBusyIndicator", true);
       try {
-        let response = await this.tx.sendTransaction(this.basePrice.toString());
+        let response = await this.tx.sendTransaction({
+          price: this.basePrice.toString(),
+        });
         console.log(response);
         if (response.status) {
           this.unitPrice = this.basePrice;

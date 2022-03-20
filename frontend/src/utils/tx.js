@@ -1,35 +1,73 @@
-import Artifact from "../../../build/contracts/EnergyPrice.json";
+import EnergyPriceArtifact from "../../../build/contracts/EnergyPrice.json";
+import PortSettingArtifact from "../../../build/contracts/PortSetting.json";
 import Web3 from 'web3';
 export class TransactionUtil {
+    TYPE = '';
     constructor() {
         this.web3 = new Web3('http://localhost:8545');
     }
     async sendTransaction(payload) {
+
         let gasPrize = await this.estimateGas(payload);
         const contract = await this.getContract();
         const addresses = await this.web3.eth.getAccounts();
-        const receipt = await contract.methods
-            .setCost(payload)
-            .send({ from: addresses[0], gas: gasPrize });
-        return receipt;
+
+        if (this.TYPE === 'energyContract') {
+            const receipt = await contract.methods
+                .setCost(payload.price)
+                .send({ from: addresses[0], gas: gasPrize });
+
+            return receipt;
+
+        } else if (this.TYPE === "portSettingContract") {
+            const receipt = await contract.methods
+                .changePortState(payload.i, payload.j, payload.state, payload._eventMsg)
+                .send({ from: addresses[0], gas: gasPrize });
+
+            return receipt;
+        }
+
     }
     async estimateGas(payload) {
-        const contract = await this.getContract();
-        const addresses = await this.web3.eth.getAccounts();
+        if (this.TYPE === "energyContract") {
+            const contract = await this.getContract();
+            const addresses = await this.web3.eth.getAccounts();
 
-        const gasPrize = await contract.methods
-            .setCost(payload)
-            .estimateGas({ from: addresses[0] });
-        return gasPrize;
+            const gasPrize = await contract.methods
+                .setCost(payload.price)
+                .estimateGas({ from: addresses[0] });
+            return gasPrize;
+        } else if (this.TYPE === "portSettingContract") {
+            const contract = await this.getContract();
+            const addresses = await this.web3.eth.getAccounts();
+
+            const gasPrize = await contract.methods
+                .changePortState(payload.i, payload.j, payload.state, payload._eventMsg)
+                .estimateGas({ from: addresses[0] });
+            return gasPrize;
+        }
+
     }
 
     async getContract() {
         const id = await this.web3.eth.net.getId();
-        const deployedNetwork = Artifact.networks[id];
-        const contract = new this.web3.eth.Contract(
-            Artifact.abi,
-            deployedNetwork.address
-        );
-        return contract;
+
+        if (this.TYPE === "energyContract") {
+            const deployedNetwork = EnergyPriceArtifact.networks[id];
+            const contract = new this.web3.eth.Contract(
+                EnergyPriceArtifact.abi,
+                deployedNetwork.address
+            );
+            return contract;
+
+        } else if (this.TYPE === "portSettingContract") {
+            const deployedNetwork = PortSettingArtifact.networks[id];
+            const contract = new this.web3.eth.Contract(
+                PortSettingArtifact.abi,
+                deployedNetwork.address
+            );
+            return contract;
+        }
+
     }
 }

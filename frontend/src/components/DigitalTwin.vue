@@ -15,12 +15,14 @@
                         <v-switch
                           inset
                           v-model="statusList[i][j]"
-                          @change="getStatus(statusList[i][j], i, j, item)"
+                          @change="changeStatus(statusList[i][j], i, j, item)"
                         >
                         </v-switch>
                       </v-list-item-icon>
                       <v-list-item-content>
-                        <v-list-item-title v-text="columns[i][j].text"></v-list-item-title>
+                        <v-list-item-title
+                          v-text="columns[i][j].text"
+                        ></v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
                   </v-list>
@@ -32,12 +34,14 @@
                         <v-switch
                           inset
                           v-model="statusList[i][j]"
-                          @change="getStatus(statusList[i][j], i, j, item)"
+                          @change="changeStatus(statusList[i][j], i, j, item)"
                         >
                         </v-switch>
                       </v-list-item-icon>
                       <v-list-item-content>
-                        <v-list-item-title v-text="columns[i][j].text"></v-list-item-title>
+                        <v-list-item-title
+                          v-text="columns[i][j].text"
+                        ></v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
                   </v-list>
@@ -64,9 +68,11 @@
 </template>
 
 <script>
+import { TransactionUtil } from "../utils/tx";
 export default {
   data: () => ({
     items: [],
+    tx: null,
     statusList: [
       [false, false, false, false],
       [false, false, false, false],
@@ -85,14 +91,26 @@ export default {
     },
   },
   created() {
+    this.tx = new TransactionUtil();
+    this.tx.TYPE = "portSettingContract";
     for (let i = 1; i <= 8; i++) {
       this.items.push({ text: "Port " + i });
     }
   },
   methods: {
-    getStatus(status, i, j, item) {
-      console.log(item.text);
+    async changeStatus(status, i, j, item) {
+      this.$root.$emit("showBusyIndicator", true);
       this.statusList[i][j] = status;
+      let obj = {
+        i: i,
+        j: j,
+        status: status,
+        _eventMsg: "User changed " + item.text,
+      };
+
+      let receipt = await this.tx.sendTransaction(obj);
+      console.log(receipt);
+      this.$root.$emit("showBusyIndicator", false);
     },
   },
 };
