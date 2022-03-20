@@ -29,9 +29,12 @@ export class TransactionUtil {
                 toBlock: 'latest'
             };
 
-            contract.getPastEvents('portEvent', options)
-                .then(results => console.log(results))
-                .catch(err => console.log(err));
+            let result = await contract.getPastEvents('portEvent', options);
+
+            let block = await this.web3.eth.getBlock(result.blockNumber);
+            console.log("new block :", block)
+           // console.log(result);
+
             return receipt;
         }
 
