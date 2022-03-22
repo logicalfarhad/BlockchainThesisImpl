@@ -25,11 +25,11 @@ contract PortSetting {
     function changePortState(
         uint256 i,
         uint256 j,
-        bool state,
+        bool status,
         string memory _eventMsg
     ) public {
         emit portEvent(_eventMsg);
-        portList[i][j] = Port(state, _eventMsg);
+        portList[i][j] = Port(status, _eventMsg);
     }
 
     function getPortList() public view returns (Port[4][2] memory _portList) {

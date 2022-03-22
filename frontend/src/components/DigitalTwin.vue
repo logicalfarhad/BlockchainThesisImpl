@@ -57,10 +57,17 @@
       <v-col md="2"> </v-col>
       <v-col md="8">
         <v-card class="pa2">
-          <v-card-title> This is for event logs </v-card-title>
+          <v-card-title> Port switching events </v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
-          </v-card-text> </v-card
+            <v-data-table
+              dense
+              :headers="headers"
+              :items="portList"
+              :items-per-page="5"
+              class="elevation-1"
+            >
+            </v-data-table> </v-card-text></v-card
       ></v-col>
       <v-col md="2"> </v-col>
     </v-row>
@@ -70,16 +77,24 @@
 <script>
 import { TransactionUtil } from "../utils/tx";
 export default {
-  data: () => ({
-    items: [],
-    tx: null,
-    statusList: [
-      [false, false, false, false],
-      [false, false, false, false],
-    ],
-    cols: 2,
-  }),
-
+  data() {
+    return {
+      items: [],
+      tx: null,
+      statusList: [
+        [false, false, false, false],
+        [false, false, false, false],
+      ],
+      cols: 2,
+      portList: [],
+      headers: [
+        { text: "Creation Time", sortable: false, value: "creationTime" },
+        { text: "Block No.", sortable: false, value: "blockNumber" },
+        { text: "Gas used", sortable: false, value: "gasUsed" },
+        { text: "Event message", value: "eventMsg" },
+      ],
+    };
+  },
   computed: {
     columns() {
       let columns = [];
@@ -90,12 +105,21 @@ export default {
       return columns;
     },
   },
-  created() {
+  async created() {
     this.tx = new TransactionUtil();
     this.tx.TYPE = "portSettingContract";
     for (let i = 1; i <= 8; i++) {
       this.items.push({ text: "Port " + i });
     }
+
+    let ports = await this.tx.getPortList();
+    for (let i = 0; i < ports.length; i++) {
+      for (let j = 0; j < ports[i].length; j++) {
+        this.statusList[i][j] = ports[i][j].status;
+      }
+    }
+
+    this.statusList = [...this.statusList];
   },
   methods: {
     async changeStatus(status, i, j, item) {
@@ -109,10 +133,8 @@ export default {
       };
 
       let receipt = await this.tx.sendTransaction(obj);
-      console.log(receipt);
       this.$root.$emit("showBusyIndicator", false);
-
-      
+      this.portList = receipt;
     },
   },
 };

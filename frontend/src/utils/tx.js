@@ -5,6 +5,7 @@ export class TransactionUtil {
     TYPE = '';
     constructor() {
         this.web3 = new Web3('http://localhost:8545');
+        this.transactionList = [];
     }
     async sendTransaction(payload) {
 
@@ -21,23 +22,30 @@ export class TransactionUtil {
 
         } else if (this.TYPE === "portSettingContract") {
             const receipt = await contract.methods
-                .changePortState(payload.i, payload.j, payload.state, payload._eventMsg)
+                .changePortState(payload.i, payload.j, payload.status, payload._eventMsg)
                 .send({ from: addresses[0], gas: gasPrize });
 
             let options = {
-                fromBlock: 0,                  //Number || "earliest" || "pending" || "latest"
+                fromBlock: 0,
                 toBlock: 'latest'
             };
-
             let result = await contract.getPastEvents('portEvent', options);
-
             let block = await this.web3.eth.getBlock(result.blockNumber);
-            console.log("new block :", block)
-           // console.log(result);
-
-            return receipt;
+            this.transactionList.push({
+                creationTime: block.timestamp,
+                blockNumber: receipt.blockNumber,
+                gasUsed: receipt.gasUsed,
+                eventId: receipt.events.portEvent.id,
+                eventMsg: receipt.events.portEvent.returnValues.eventMsg
+            })
+            return this.transactionList;
         }
 
+    }
+    async getPortList() {
+        const contract = await this.getContract();
+        let portList = await contract.methods.getPortList().call()
+        return portList;
     }
     async estimateGas(payload) {
         if (this.TYPE === "energyContract") {
@@ -53,7 +61,7 @@ export class TransactionUtil {
             const addresses = await this.web3.eth.getAccounts();
 
             const gasPrize = await contract.methods
-                .changePortState(payload.i, payload.j, payload.state, payload._eventMsg)
+                .changePortState(payload.i, payload.j, payload.status, payload._eventMsg)
                 .estimateGas({ from: addresses[0] });
             return gasPrize;
         }
