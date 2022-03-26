@@ -35,6 +35,7 @@
     "mongodb": "^3.7.3",
     "mqtt": "^4.3.5",
     "socket.io": "^4.4.1",
+    "truffle-contract-size": "^2.0.1",
     "web3": "^1.7.1",
     "winston-socket.io": "^0.6.0"
   }
