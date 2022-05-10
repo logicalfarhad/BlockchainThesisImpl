@@ -8,9 +8,7 @@ class Merkeltree {
     };
   }
   generate(payload, callback) {
-    this.args.array.push(payload["DS18B20-1"].Temperature);
-    this.args.array.push(payload["DS18B20-2"].Temperature);
-    this.args.array.push(payload.Time);
+    this.args.array = payload;
     gentree.fromArray(this.args, (err, tree) => {
       if (!err) {
         callback(tree.root);

@@ -25,25 +25,37 @@ const disconnectDB = () => dbConnection.close()
 const insertLog = async (payload) => {
     await dbConnection.collection('mqtt').insertOne(payload);
 }
-const getLogs = async (callback) => {
-    let result = await dbConnection.collection('mqtt').find().toArray();
-    callback(result);
-}
 
 const insertSensorData = async (payload) => {
     await dbConnection.collection('sensor').insertOne(payload);
 }
 
-const getSensorData = async (startDate, endDate, callback) => {
+const getLogs = async (currentBlockTimeStamp, nextBlockTimeStamp) => {
+    let result;
+    if (nextBlockTimeStamp == -1) {
+        result = await dbConnection.collection('sensor')
+            .find({ 'timeStamp': { $lte: currentBlockTimeStamp } }).toArray();
+    } else {
+        result = await dbConnection.collection('sensor')
+            .find({ 'timeStamp': { $lte: currentBlockTimeStamp, $gte: nextBlockTimeStamp } }).toArray();
+    }
+    return result;
+}
+
+
+const getSensorData = async (startDate, endDate) => {
     let pipeline = [
         {
             $group: {
                 _id: "$idx",
-                totalVoltage: {
+                totalCurrent: {
                     $sum: "$v"
                 },
-                totalTime: {
-                    $sum: "$ts"
+                minTime: {
+                    $min: "$timeStamp"
+                },
+                maxTime: {
+                    $max: "$timeStamp"
                 }
             }
         },
@@ -51,8 +63,9 @@ const getSensorData = async (startDate, endDate, callback) => {
             $project: {
                 port: "$_id",
                 _id: 0,
-                totalVoltage: "$totalVoltage",
-                totalTime: "$totalTime"
+                totalCurrent: "$totalCurrent",
+                minTime: "$minTime",
+                maxTime: "$maxTime"
             }
         },
         {
@@ -62,7 +75,7 @@ const getSensorData = async (startDate, endDate, callback) => {
         }
     ];
 
-    if (startDate && endDate) {
+    if (startDate && endDate) { // add filter to the pipeline if there is date range
         pipeline.unshift({
             $match: {
                 timeStamp: {
@@ -76,7 +89,7 @@ const getSensorData = async (startDate, endDate, callback) => {
         .aggregate(pipeline, {
             allowDiskUse: true
         }).toArray();
-    callback(result);
+    return result;
 }
 
 

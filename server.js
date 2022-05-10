@@ -21,34 +21,42 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post("/getLogsfromDb", (req, res) => {
+app.post("/getLogsfromDb", async (req, res) => {
     const { startDate, endDate } = req.body;
-
     const startDateEpoch = new Date(startDate).getTime();//startDate is small 22/02/2022
     //searchDate is 25/02/2022
     const endDateEpoch = new Date(endDate).getTime(); //endDate is bigger 28/02/2022
     const tree = new Merkeltree();
-    db.getLogs((documents) => {
-        let hashArr = [];
-        documents.forEach((doc) => {
-            tree.generate(doc, (hash) => {
-                let timestamp = new Date(doc.Time).getTime();
-                if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
-                    hashArr.push({ logHash: hash, timeStamp: timestamp });
-                }
-            })
-        });
-        res.json(hashArr);
+    const transactionList = await tx.getTransaction(startDate, endDate);
+    const sortedtransactions = transactionList.sort((a, b) => {
+        return a.timeStamp - b.timeStamp
     });
+    console.log(sortedtransactions);
+    let hashArr = [];
+    let currentBlockTimeStamp;
+    let nextBlockTimeStamp = -1;
+    for (let i = 0; i < sortedtransactions.length; i++) {
+        currentBlockTimeStamp = sortedtransactions[i].timeStamp;
+        let payloadArr = [];
+
+        let sensorData = await db.getMqttData(currentBlockTimeStamp, nextBlockTimeStamp);
+        payloadArr = sensorData.map((item) => {
+            delete item["_id"]
+            return item;
+        });
+        tree.generate(payloadArr, (hash) => {
+            hashArr.push(hash);
+        });
+        nextBlockTimeStamp = currentBlockTimeStamp;
+    }
+    return res.json(hashArr);
 });
 
-app.post("/getSensorData", (req, res) => {
+app.post("/getSensorData", async (req, res) => {
     const { startDate, endDate } = req.body;
-    db.getSensorData(startDate, endDate, (sensorData) => {
-        res.json(sensorData);
-    })
+    let sensorData = await db.getSensorData(startDate, endDate);
+    res.json(sensorData);
 })
-
 /*
 app.post("/setPrice", async (req, res) => {
     const { price } = req.body;

@@ -8,6 +8,10 @@ const TransactionUtil = require("../utilities/tx");
 class MQTTHandler {
   constructor() {
     this.tx = new TransactionUtil();
+    //   this.payloadArr = [];
+    this.deviceLogArr = [];
+    this.sensorLogArr = [];
+    this.flag = true;
   }
   connect() {
     const mqtt_host = 'zamperoni.fit.fraunhofer.de';
@@ -25,6 +29,7 @@ class MQTTHandler {
     this.mqttClient.on("error", (error) => this.onMQTTError(error));
     this.mqttClient.on("connect", () => this.onMQTTConnect());
     this.mqttClient.on("close", () => this.onMQTTClose());
+
     this.mqttClient.on("message", (topic, messageBuffer) =>
       this.onMQTTMessage(topic, messageBuffer)
     );
@@ -40,54 +45,36 @@ class MQTTHandler {
   }
 
   onMQTTConnect() {
-
-    setInterval(() => {
-      let payload = {
-        "Time": new Date().toISOString(),
-        "DS18B20-1": { "Id": "0315A46FF3FF", "Temperature": 13.7 },
-        "DS18B20-2": { "Id": "0415A424A8FF", "Temperature": 13.6 }
-      };
-     // Db.insertLog(payload);
-      this.tree.generate(payload, (hash) => {
-        let txObj = {
-          logHash: hash,
-          timeStamp: new Date(payload.Time).getTime(),
-        };
-     //   this.tx.sendTransaction(txObj);
-      });
-    }, 60 * 1000);
-
-
-    setInterval(() => {
-      let port_payload = {
-        "type": "outlet",
-        "idx": Math.floor(Math.random() * 8) + 1,
-        "v": 0.256,
-        "unit": "A",
-        "field": "current",
-        "cause": "interval",
-        "ts": 6605,
-        "timeStamp": new Date()
-      };
-    //  Db.insertSensorData(port_payload);
-    }, 60 * 1000);
-
-    this.mqttClient.subscribe(Topics.TOPIC_FIT_FRIDGE, { qos: 0 });
+    this.mqttClient.subscribe(Topics.TOPIC_FIT_TELEMETRY, { qos: 0 });
+    this.mqttClient.subscribe(Topics.TOPIC_FIT_SENSOR, { qos: 0 });
   }
 
   onMQTTMessage(topic, messageBuffer) {
+    let time = new Date().getTime();
     let payload = JSON.parse(messageBuffer.toString());
-    this.tree.generate(payload, (hash) => {
+    payload = { ...payload, timeStamp: time }
 
-      let txObj = {
-        logHash: hash,
-        timeStamp: new Date(payload.Time).getTime(),
-      };
-
-      if (this.IO) {
-        this.IO.emit('data_from_mqtt', txObj);
-      }
-    });
+    if (topic.includes('sensor')) {
+      this.sensorLogArr.push({ ...payload });
+      Db.insertSensorData({ ...payload });
+      //  console.log(payload)
+    } else if (topic.includes('device')) {
+      //   this.deviceLogArr.push(payload);
+      //  Db.insertLog(payload);
+    }
+    if (this.flag == true) {
+      setInterval(() => {
+        this.tree.generate(this.sensorLogArr, (hash) => {
+          let txObj = {
+            logHash: hash,
+            timeStamp: new Date().getTime(),
+          };
+          this.tx.sendTransaction(txObj);
+        });
+        this.sensorLogArr = [];
+      }, 2 * 60 * 1000);
+    }
+    this.flag = false;
   }
 }
 module.exports = MQTTHandler;

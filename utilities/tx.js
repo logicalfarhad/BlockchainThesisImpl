@@ -36,7 +36,7 @@ class TransactionUtil {
     const receipt = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
       .send({ from: address, gas: gasPrize });
-      return receipt;
+    return receipt;
   }
 
 
@@ -51,7 +51,15 @@ class TransactionUtil {
       let value = await contract.methods.getLogbyId(i).call();
 
       let timestamp = parseInt(value[1], 10);
-      if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
+      if (startDateEpoch && endDateEpoch) {
+        if (timestamp >= startDateEpoch && timestamp <= endDateEpoch) {
+          let tx = {
+            logHash: value[0],
+            timeStamp: timestamp,
+          };
+          transactionList.push(tx);
+        }
+      } else {
         let tx = {
           logHash: value[0],
           timeStamp: timestamp,
