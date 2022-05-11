@@ -51,7 +51,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary lighten-1" @click="clear">CLEAR</v-btn>
+            <v-btn color="primary darken-1" @click="clear">CLEAR</v-btn>
             <v-btn color="primary darken-1" @click="verify">Verify</v-btn>
           </v-card-actions>
         </v-card>
@@ -78,11 +78,11 @@
                 <tr>
                   <td>
                     {{
-                      item.dbtimeStamp | moment("dddd, MMMM Do YYYY, h:mm:ss a")
+                      item.count
                     }}
                   </td>
                   <td v-if="item.matched">
-                    <v-icon color="green">check_circle_outline</v-icon>
+                    <v-icon color="green">verified</v-icon>
                   </td>
                   <td v-else>
                     <v-icon color="red">close</v-icon>
@@ -136,17 +136,6 @@
                 infoItem.blocktimeStamp
                   | moment("dddd, MMMM Do YYYY, h:mm:ss a")
               }}</v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item two-line>
-            <v-list-item-content>
-              <v-list-item-title>Time from Database</v-list-item-title>
-              <v-list-item-subtitle>
-                {{
-                  infoItem.dbtimeStamp | moment("dddd, MMMM Do YYYY, h:mm:ss a")
-                }}
-              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
 
@@ -214,7 +203,7 @@ export default {
       },
       logList: [],
       headers: [
-        { text: "Time", sortable: false, value: "blocktimeStamp" },
+        { text: "No.", sortable: false, value: "count" },
         { text: "Matched", sortable: true, value: "matched" },
         { text: "Info" },
       ],
@@ -255,33 +244,27 @@ export default {
 
       if (blockData.length === dbdata.length) {
         for (let i = 0; i < dbdata.length; i++) {
-          let parsedDbDate = new Date();
-          parsedDbDate.setTime(dbdata[i].timeStamp);
           let parsedBlockDate = new Date();
           parsedBlockDate.setTime(blockData[i].timeStamp);
-          if (
-            blockData[i].logHash == dbdata[i].logHash &&
-            blockData[i].timeStamp == dbdata[i].timeStamp
-          ) {
+          if (blockData[i].logHash == dbdata[i]) {
             this.logList.push({
               blocklogHash: blockData[i].logHash,
-              dblogHash: dbdata[i].logHash,
-              dbtimeStamp: parsedDbDate,
+              dblogHash: dbdata[i],
               blocktimeStamp: parsedBlockDate,
               matched: true,
+              count: i + 1,
             });
           } else {
             this.logList.push({
               blocklogHash: blockData[i].logHash,
-              dblogHash: dbdata[i].logHash,
-              dbtimeStamp: parsedDbDate,
+              dblogHash: dbdata[i],
               blocktimeStamp: parsedBlockDate,
               matched: false,
+              count: i + 1,
             });
           }
         }
       }
-
       let totalMatched = this.logList.filter((e) => e.matched === true).length;
       let didnotMatch = this.logList.length - totalMatched;
       this.data.push(["Matched", totalMatched], ["Did not match", didnotMatch]);

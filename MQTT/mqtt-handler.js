@@ -12,6 +12,8 @@ class MQTTHandler {
     this.deviceLogArr = [];
     this.sensorLogArr = [];
     this.flag = true;
+    const INTERVAL = process.env.LOGGING_INTERVAL || 2
+    this.LOGGING_INTERVAL = INTERVAL * 60 * 1000;
   }
   connect() {
     const mqtt_host = 'zamperoni.fit.fraunhofer.de';
@@ -72,7 +74,7 @@ class MQTTHandler {
           this.tx.sendTransaction(txObj);
         });
         this.sensorLogArr = [];
-      }, 2 * 60 * 1000);
+      }, this.LOGGING_INTERVAL);
     }
     this.flag = false;
   }

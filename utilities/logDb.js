@@ -47,7 +47,7 @@ const getSensorData = async (startDate, endDate) => {
     let pipeline = [
         {
             $group: {
-                _id: "$idx",
+                _id: '$idx',
                 totalCurrent: {
                     $sum: "$v"
                 },
@@ -55,7 +55,7 @@ const getSensorData = async (startDate, endDate) => {
                     $min: "$timeStamp"
                 },
                 maxTime: {
-                    $max: "$timeStamp"
+                    "$max": "$timeStamp"
                 }
             }
         },
@@ -64,8 +64,33 @@ const getSensorData = async (startDate, endDate) => {
                 port: "$_id",
                 _id: 0,
                 totalCurrent: "$totalCurrent",
-                minTime: "$minTime",
-                maxTime: "$maxTime"
+                maxTime: { "$toDate": "$maxTime" },
+                minTime: { "$toDate": "$minTime" }
+            }
+        },
+        {
+            $project: {
+                port: "$port",
+                _id: 0,
+                totalCurrent: "$totalCurrent",
+                duration: {
+                    $dateDiff: {
+                        startDate: "$minTime",
+                        endDate: "$maxTime",
+                        unit: "minute"
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                port: "$port",
+                totalCurrent: "$totalCurrent",
+                totalHour: {
+                    $divide: [
+                        "$duration", 60
+                    ]
+                }
             }
         },
         {
@@ -79,8 +104,8 @@ const getSensorData = async (startDate, endDate) => {
         pipeline.unshift({
             $match: {
                 timeStamp: {
-                    $gte: new Date(startDate),
-                    $lte: new Date(endDate)
+                    $gte: startDate,
+                    $lte: endDate
                 }
             }
         })

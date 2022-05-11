@@ -10,10 +10,9 @@
           </v-card-text>
         </v-card>
       </v-col>
-
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title> Total :€{{ total }} </v-card-title>
+          <v-card-title> Total :€{{ total.toFixed(2) }} </v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
           </v-card-text>
@@ -34,7 +33,7 @@
             Price in smart contract: {{ unitPrice }}€ <br />
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary lighten-1" @click="calculatePrice"
+            <v-btn color="primary darken-1" @click="calculatePrice"
               >Calculate</v-btn
             >
             <v-btn color="primary darken-1" @click="setPrice">Set Price</v-btn>
@@ -69,7 +68,7 @@
               >
                 <template slot="actions" slot-scope="{ parent }">
                   <v-btn
-                    color="primary lighten-1"
+                    color="primary darken-1"
                     @click.native="parent.clearHandler"
                     >CLEAR</v-btn
                   >
@@ -103,7 +102,7 @@
             </v-flex>
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary lighten-1" @click="clear">CLEAR</v-btn>
+            <!--  <v-btn color="primary darken-1" @click="clear">CLEAR</v-btn> -->
             <v-btn color="primary darken-1" @click="createInvoice"
               >Create</v-btn
             >
@@ -157,7 +156,7 @@ export default {
         postcode: "53757 Sankt Augustin",
       },
       to: {
-        name: "Set eletricity price for per KWh",
+        name: "Set eletricity price for per kWh",
         address: "Von-der-Wettern-Straße 23",
         details: "51149 Köln",
       },
@@ -169,9 +168,9 @@ export default {
         sortable: false,
         value: "port",
       },
-      { text: "Total Current(kWh)", value: "totalCurrent" },
-      { text: "Total Time(HH:mm:ss)", value: "totalTime" },
-      { text: "Total KWh", value: "TotalKWh" },
+      { text: "Total Power(Kilowatt)", value: "totalPower" },
+      { text: "Total Time(In hour)", value: "totalHour" },
+      { text: "Total Energy(kWh)", value: "totalEnergy" },
     ],
     sensors: [],
   }),
@@ -182,13 +181,13 @@ export default {
     else this.unitPrice = parseFloat(price);
 
     this.tx = new TransactionUtil();
-    this.tx.TYPE='energyContract';
+    this.tx.TYPE = "energyContract";
   },
   methods: {
     async createInvoice() {
       this.sensors = [];
-      const startDate = this.$refs["startDate"].selectedDatetime?.toISOString();
-      const endDate = this.$refs["endDate"].selectedDatetime?.toISOString();
+      const startDate = this.$refs["startDate"].selectedDatetime?.getTime();
+      const endDate = this.$refs["endDate"].selectedDatetime?.getTime();
       this.$root.$emit("showBusyIndicator", true);
 
       const requestOptions = {
@@ -201,15 +200,13 @@ export default {
         requestOptions
       );
       const sensorData = await blockResponse.json();
-
       this.$root.$emit("showBusyIndicator", false);
       this.sensors = sensorData.map((item) => {
         return {
           port: "Port " + item.port,
-          totalCurrent: (item.totalCurrent * 230) / 1000,
-          totalTimeInHours: item.totalTime / 3600,
-          totalTime: this.$moment.utc(item.totalTime * 1000).format("HH:mm:ss"),
-          TotalKWh: this.getTotalKWh(item),
+          totalPower: (item.totalCurrent * 230) / 1000, //converting ampere to kW
+          totalHour: item.totalHour,
+          totalEnergy: this.getTotalEnergy(item),
         };
       });
       this.total = 0;
@@ -221,7 +218,6 @@ export default {
         let response = await this.tx.sendTransaction({
           price: this.basePrice.toString(),
         });
-        console.log(response);
         if (response.status) {
           this.unitPrice = this.basePrice;
           this.basePrice = 0;
@@ -234,15 +230,14 @@ export default {
     },
     calculatePrice() {
       const sum = this.sensors
-        .map((item) => item.TotalKWh)
+        .map((item) => item.totalEnergy)
         .reduce((prev, curr) => prev + curr, 0);
-      this.total = (sum * this.unitPrice) / 100;
-      console.log(this.total);
+      this.total = sum * this.unitPrice;
     },
-    getTotalKWh(item) {
-      let totalHours = item.totalTime / 3600;
-      let totalCurrent = (item.totalVoltage * 230) / 1000;
-      return totalCurrent / totalHours;
+    getTotalEnergy(item) {
+      let totalHours = item.totalHour;
+      let totalPower = (item.totalCurrent * 230) / 1000; //converting ampere to kW
+      return totalPower * totalHours;
     },
   },
 };

@@ -15,7 +15,6 @@ require("./utilities/socket.js").init(server);
 const Logger = require("./utilities/logger");
 const db = require("./utilities/logDb");
 const Merkeltree = require("./utilities/merkeltree");
-const console = require("console");
 
 
 app.use(cors());
@@ -106,7 +105,7 @@ app.get("/getPrice", async (req, res) => {
         price = await tx.getEnergyPrice(price);
         res.json(price);
     } catch (e) {
-        console.log(e);
+        console.log(e)
         res.json(false);
     }
 })
