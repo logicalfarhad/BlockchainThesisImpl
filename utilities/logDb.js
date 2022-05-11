@@ -91,17 +91,10 @@ const getSensorData = async (startDate, endDate) => {
         }).toArray();
     return result;
 }
-
-
-const removeAll = async (callback) => {
-    const result = await dbConnection.collection('mqtt').deleteMany();
-    callback(result);
-}
-
 module.exports = {
     connectDB,
     getDB, insertSensorData,
     disconnectDB,
-    removeAll, getLogs,
+    getLogs,
     insertLog, getSensorData
 }

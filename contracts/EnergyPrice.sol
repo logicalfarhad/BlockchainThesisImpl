@@ -3,7 +3,7 @@
 pragma solidity ^0.8.11;
 
 contract EnergyPrice {
-    string price = "32.16";
+    string price = "0.3216";
     event priceChanged(string oldprice, string newprice);
 
     function setCost(string memory _price) public {

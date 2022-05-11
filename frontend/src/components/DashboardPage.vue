@@ -156,7 +156,8 @@
                 >Matched:
                 <v-icon color="green">verified</v-icon></v-list-item-title
               ><v-list-item-title v-else
-                >Matched: <v-icon color="red">highlight_off</v-icon></v-list-item-title
+                >Matched:
+                <v-icon color="red">highlight_off</v-icon></v-list-item-title
               >
             </v-list-item-content>
           </v-list-item>
@@ -227,8 +228,9 @@ export default {
     async verify() {
       this.logList = [];
       this.data = [["Match Group", "Match Count"]];
-      const startDate = this.$refs["startDate"].selectedDatetime.toISOString();
-      const endDate = this.$refs["endDate"].selectedDatetime.toISOString();
+      const startDate = this.$refs["startDate"].selectedDatetime?.getTime();
+      const endDate = this.$refs["endDate"].selectedDatetime?.getTime();
+
       this.$root.$emit("showBusyIndicator", true);
 
       const requestOptions = {
@@ -240,6 +242,7 @@ export default {
         "http://localhost:5000/getLogsfromBlockchain",
         requestOptions
       );
+
       const blockData = await blockResponse.json();
 
       const dbresponse = await fetch(
@@ -281,10 +284,7 @@ export default {
 
       let totalMatched = this.logList.filter((e) => e.matched === true).length;
       let didnotMatch = this.logList.length - totalMatched;
-      this.data.push(
-        ["Matched", totalMatched],
-        ["Did not match", didnotMatch]
-      );
+      this.data.push(["Matched", totalMatched], ["Did not match", didnotMatch]);
     },
     clear() {},
   },

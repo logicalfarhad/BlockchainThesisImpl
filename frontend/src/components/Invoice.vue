@@ -25,13 +25,13 @@
           <v-card-text>
             <v-flex xs8>
               <v-text-field
-                label="In cents"
+                label="In euro"
                 value="0"
                 prefix="€"
                 v-model="basePrice"
               ></v-text-field>
             </v-flex>
-            Price in smart contract: {{ unitPrice }} <br />
+            Price in smart contract: {{ unitPrice }}€ <br />
           </v-card-text>
           <v-card-actions>
             <v-btn color="primary lighten-1" @click="calculatePrice"
@@ -206,7 +206,7 @@ export default {
       this.sensors = sensorData.map((item) => {
         return {
           port: "Port " + item.port,
-          totalCurrent: (item.totalVoltage * 230) / 1000,
+          totalCurrent: (item.totalCurrent * 230) / 1000,
           totalTimeInHours: item.totalTime / 3600,
           totalTime: this.$moment.utc(item.totalTime * 1000).format("HH:mm:ss"),
           TotalKWh: this.getTotalKWh(item),
