@@ -13,6 +13,7 @@ module.exports = {
       let sessionID = socket.id;
       Logger.info(`${sessionID} connected on socket io`);
       socket.join("data_from_mqtt");
+      socket.join("change_port_status");
       socket.on("disconnect", () => {
         Logger.info(`${sessionID} disconnect`);
       });

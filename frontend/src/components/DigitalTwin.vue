@@ -57,7 +57,7 @@
       <v-col md="2"> </v-col>
       <v-col md="8">
         <v-card class="pa2">
-          <v-card-title> Port switching event dashboard </v-card-title>
+          <v-card-title> Port switching event logs </v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
             <v-data-table
@@ -147,14 +147,20 @@ export default {
         (a, b) => b.blockNumber - a.blockNumber
       );
       this.eventList = [...this.eventList];
+      this.socket.emit("change_port_status", {
+        status: status,
+        portNumber: item.text,
+      });
       this.$root.$emit("showBusyIndicator", false);
     },
   },
   async mounted() {
-    this.socket = io.connect("http://localhost:5000");
+    const THRESHHOLD = process.env.VUE_APP_CURRENT_THRESHHOLD;
+    const APP_URL = process.env.VUE_APP_BACKEND_BASE_URL;
+    this.socket = io.connect(APP_URL);
     this.socket.on("connect", async () => {
       this.socket.on("data_from_mqtt", async (msg) => {
-        if (msg.v > 0.08 && msg.idx < 8) {
+        if (msg.v > THRESHHOLD && msg.idx < 8) {
           console.log(msg.v);
           if (this.statusList[1][3] === false) {
             let obj = {
@@ -173,5 +179,3 @@ export default {
   },
 };
 </script>
-
-<style scoped></style>

@@ -5,7 +5,7 @@ const Provider = require("@truffle/hdwallet-provider");
 const Web3 = require("web3");
 const address = process.env.ACCOUNT_ADDRESS;
 const private_key = process.env.ACCOUNT_PRIVATE_KEY;
-const dev_url = process.env.GANACHE_DEV_URL || 'http://localhost:8545/';
+const dev_url = process.env.BLOCKCHAIN_NETWORK_URL;
 
 class TransactionUtil {
   constructor() {

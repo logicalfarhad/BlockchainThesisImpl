@@ -169,6 +169,7 @@ export default {
   data() {
     return {
       dialog: false,
+      APP_URL: process.env.VUE_APP_BACKEND_BASE_URL,
       title: "Tamper-proof logging dashboard",
       startDate: null,
       infoItem: null,
@@ -226,14 +227,14 @@ export default {
         body: JSON.stringify({ startDate: startDate, endDate: endDate }),
       };
       const blockResponse = await fetch(
-        "http://localhost:5000/getLogsfromBlockchain",
+        this.APP_URL + "/getLogsfromBlockchain",
         requestOptions
       );
 
       const blockData = await blockResponse.json();
 
       const dbresponse = await fetch(
-        "http://localhost:5000/getLogsfromDb",
+        this.APP_URL + "/getLogsfromDb",
         requestOptions
       );
       const dbdata = await dbresponse.json();

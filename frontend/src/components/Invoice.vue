@@ -36,7 +36,7 @@
     <v-row>
       <v-col md="8">
         <v-card class="pa2">
-          <v-card-title> Port Statistics</v-card-title>
+          <v-card-title> Energy consumption statistics</v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
             <v-data-table
@@ -115,6 +115,7 @@ export default {
     startDate: null,
     tx: null,
     total: 0,
+    APP_URL: process.env.VUE_APP_BACKEND_BASE_URL,
     unitPrice: 0,
     basePrice: 0,
     invoiceType: "Invoice",
@@ -156,7 +157,7 @@ export default {
   }),
   async created() {
     this.$root.$emit("showBusyIndicator", true);
-    let priceResponse = await fetch("http://localhost:5000/getPrice");
+    let priceResponse = await fetch(this.APP_URL + "/getPrice");
     let price = await priceResponse.json();
     if (price === "") this.unitPrice = 0;
     else this.unitPrice = parseFloat(price);
@@ -166,7 +167,7 @@ export default {
   },
   methods: {
     async createInvoice() {
-       this.$root.$emit("showBusyIndicator", true);
+      this.$root.$emit("showBusyIndicator", true);
       this.sensors = [];
       const startDate = this.$refs["startDate"].selectedDatetime?.getTime();
       const endDate = this.$refs["endDate"].selectedDatetime?.getTime();
@@ -177,10 +178,7 @@ export default {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ startDate: startDate, endDate: endDate }),
       };
-      const blockResponse = await fetch(
-        "http://localhost:5000/getSensorData",
-        requestOptions
-      );
+      const blockResponse = await fetch(this.APP_URL + "/getSensorData",requestOptions);
       const sensorData = await blockResponse.json();
       this.$root.$emit("showBusyIndicator", false);
       this.sensors = sensorData.map((item) => {
@@ -193,7 +191,7 @@ export default {
       });
       this.total = 0;
 
-       this.$root.$emit("showBusyIndicator", false);
+      this.$root.$emit("showBusyIndicator", false);
     },
     clear() {},
     async setPrice() {

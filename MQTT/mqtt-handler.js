@@ -8,9 +8,9 @@ const TransactionUtil = require("../utilities/tx");
 class MQTTHandler {
   constructor() {
     this.tx = new TransactionUtil();
-    this.deviceLogArr = [];
-    this.sensorLogArr = [];
-    this.flag = true;
+    this.sensorList = [];
+    this.telemetryList = [];
+    this.singleRun = true;
     const INTERVAL = process.env.LOGGING_INTERVAL || 2
     this.LOGGING_INTERVAL = INTERVAL * 60 * 1000;
   }
@@ -34,13 +34,18 @@ class MQTTHandler {
     );
     this.IO = require("../utilities/socket.js").getIO();
     this.tree = new Merkeltree();
+    this.IO.on("connect", (socket) => {
+      socket.on("change_port_status", (payload) => {
+        this.mqttClient.publish(Topics.TOPIC_FIT_TELEMETRY, JSON.stringify(payload), { qos: 0 });
+      });
+    });
   }
   onMQTTError(error) {
     this.mqttClient.end();
   }
 
   onMQTTClose() {
-    Logger.logEvent(this.clientName, "MQTT client disconnected");
+    Logger.logEvent("MQTT client disconnected");
   }
 
   onMQTTConnect() {
@@ -49,23 +54,23 @@ class MQTTHandler {
   }
 
   onMQTTMessage(topic, messageBuffer) {
-    let time = new Date().getTime();
+    let currentTime = new Date().getTime();
     let payload = JSON.parse(messageBuffer.toString());
-    payload = { ...payload, timeStamp: time }
+    payload = { ...payload, timeStamp: currentTime }
     if (topic.includes('sensor')) {
       if (this.IO) {
         this.IO.emit('data_from_mqtt', payload);
       }
-      this.sensorLogArr.push({ ...payload });
+      this.sensorList.push({ ...payload });
       Db.insertLog({ ...payload }, "sensor");
     } else if (topic.includes('device')) {
-      this.deviceLogArr.push({ ...payload });
+      this.telemetryList.push({ ...payload });
       Db.insertLog({ ...payload }, "telemetry");
     }
-    if (this.flag == true) {
+    if (this.singleRun == true) {
       setInterval(() => {
-        this.tree.generate(this.sensorLogArr, (sensorHash) => {
-          this.tree.generate(this.deviceLogArr, (deviceHash) => {
+        this.tree.generate(this.sensorList, (sensorHash) => {
+          this.tree.generate(this.telemetryList, (deviceHash) => {
             this.tree.generate([sensorHash, deviceHash], (finalHash) => {
               let txObj = {
                 logHash: finalHash,
@@ -74,13 +79,12 @@ class MQTTHandler {
               this.tx.sendTransaction(txObj);
             });
           });
-
         });
-        this.deviceLogArr = [];
-        this.sensorLogArr = [];
+        this.telemetryList = [];
+        this.sensorList = [];
       }, this.LOGGING_INTERVAL);
     }
-    this.flag = false;
+    this.singleRun = false;
   }
 }
 module.exports = MQTTHandler;

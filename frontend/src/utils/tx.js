@@ -2,10 +2,11 @@ import EnergyPriceArtifact from "../../../build/contracts/EnergyPrice.json";
 import PortSettingArtifact from "../../../build/contracts/PortSetting.json";
 import Web3 from 'web3';
 import moment from 'moment';
+const dev_url = process.env.VUE_APP_BLOCKCHAIN_NETWORK_URL;
 export class TransactionUtil {
     TYPE = '';
     constructor() {
-        this.web3 = new Web3('http://localhost:8545');
+        this.web3 = new Web3(dev_url);
         this.transactionList = [];
     }
 
