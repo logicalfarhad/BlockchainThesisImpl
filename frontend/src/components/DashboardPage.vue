@@ -169,7 +169,7 @@ export default {
   data() {
     return {
       dialog: false,
-      title: "Event Logging Dashboard",
+      title: "Tamper-proof logging dashboard",
       startDate: null,
       infoItem: null,
       endDate: null,

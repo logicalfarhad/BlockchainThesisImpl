@@ -21,6 +21,15 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+
+
+app.post("/getLogsfromBlockchain", async (req, res) => {
+    const { startDate, endDate } = req.body;
+    console.log(startDate, endDate);
+    const transactionList = await tx.getTransaction(startDate, endDate);
+    res.json(transactionList);
+})
+
 app.post("/getLogsfromDb", async (req, res) => {
     const { startDate, endDate } = req.body;
 
@@ -28,55 +37,80 @@ app.post("/getLogsfromDb", async (req, res) => {
     const endDateEpoch = endDate;
 
     const tree = new Merkeltree();
-    let hashArr = [];
+    const hashArr = [];
     let currentBlockTimeStamp;
     let nextBlockTimeStamp = -1;
     let index = -1;
 
-    const transactionList = await tx.getTransaction(startDateEpoch, endDateEpoch);
-    const fullTransactionList = await tx.getTransaction();
+    const blockTransactionList = await tx.getTransaction(startDateEpoch, endDateEpoch);
+    const allBlockTransactionList = await tx.getTransaction();
 
-    if (transactionList.length && fullTransactionList.length) {
-        for (let i = 0; i <= fullTransactionList.length; i++) {
-            if (fullTransactionList[i].timeStamp === transactionList[0].timeStamp) {
+    if (blockTransactionList.length && allBlockTransactionList.length) {
+        for (let i = 0; i <= allBlockTransactionList.length; i++) {
+            if (allBlockTransactionList[i].timeStamp === blockTransactionList[0].timeStamp) {
                 index = i;
                 break;
             }
         }
         if (index !== -1) {
-            const specialts = fullTransactionList[index - 1];
+            const specialts = allBlockTransactionList[index - 1];
             if (specialts)
-                transactionList.unshift(specialts);
+                blockTransactionList.unshift(specialts); // add specialts in the first element of the list
         }
 
-        const sortedtransactions = transactionList.sort((a, b) => a.timeStamp - b.timeStamp);
+        const sortedBlockTransactionList = blockTransactionList.sort((a, b) => a.timeStamp - b.timeStamp);
 
         if (startDateEpoch && endDateEpoch && index > 0) {
-            for (let i = 0; i < sortedtransactions.length - 1; i++) {
-                currentBlockTimeStamp = sortedtransactions[i].timeStamp;
-                nextBlockTimeStamp = sortedtransactions[i + 1].timeStamp;
-                let payloadArr = [];
-                let sensorData = await db.getLogs(nextBlockTimeStamp, currentBlockTimeStamp);
-                payloadArr = sensorData.map((item) => {
+            for (let i = 0; i < sortedBlockTransactionList.length - 1; i++) {
+                currentBlockTimeStamp = sortedBlockTransactionList[i].timeStamp;
+                nextBlockTimeStamp = sortedBlockTransactionList[i + 1].timeStamp;
+
+
+                const sensorDbData = await db.getLogs(nextBlockTimeStamp, currentBlockTimeStamp, "sensor");
+                const mqttDbData = await db.getLogs(nextBlockTimeStamp, currentBlockTimeStamp, "telemetry");
+
+                const sensorDbList = sensorDbData.map((item) => {
                     delete item["_id"]
                     return item;
                 });
-                tree.generate(payloadArr, (hash) => {
-                    hashArr.push(hash);
+
+                const telemetryDbList = mqttDbData.map((item) => {
+                    delete item["_id"]
+                    return item;
                 });
+
+                tree.generate(sensorDbList, (sensorHash) => {
+                    tree.generate(telemetryDbList, (telemetryHash) => {
+                        tree.generate([sensorHash, telemetryHash], (finalHash) => {
+                            hashArr.push(finalHash);
+                        });
+                    });
+                });
+
             }
         } else {
-            for (let i = 0; i < sortedtransactions.length; i++) {
-                currentBlockTimeStamp = sortedtransactions[i].timeStamp;
-                let payloadArr = [];
+            for (let i = 0; i < sortedBlockTransactionList.length; i++) {
+                currentBlockTimeStamp = sortedBlockTransactionList[i].timeStamp;
 
-                let sensorData = await db.getLogs(currentBlockTimeStamp, nextBlockTimeStamp);
-                payloadArr = sensorData.map((item) => {
+                let sensorDbData = await db.getLogs(currentBlockTimeStamp, nextBlockTimeStamp, "sensor");
+                let mqttDbData = await db.getLogs(currentBlockTimeStamp, nextBlockTimeStamp, "telemetry");
+
+                const sensorDbList = sensorDbData.map((item) => {
                     delete item["_id"]
                     return item;
                 });
-                tree.generate(payloadArr, (hash) => {
-                    hashArr.push(hash);
+
+                const telemetryDbList = mqttDbData.map((item) => {
+                    delete item["_id"]
+                    return item;
+                });
+
+                tree.generate(sensorDbList, (sensorHash) => {
+                    tree.generate(telemetryDbList, (telemetryHash) => {
+                        tree.generate([sensorHash, telemetryHash], (finalHash) => {
+                            hashArr.push(finalHash);
+                        });
+                    });
                 });
                 nextBlockTimeStamp = currentBlockTimeStamp;
             }
@@ -107,18 +141,6 @@ app.get("/getPrice", async (req, res) => {
     }
 })
 
-app.get("/removeDb", (req, res) => {
-    db.removeAll((result) => {
-        res.json(result);
-    })
-})
-
-app.post("/getLogsfromBlockchain", async (req, res) => {
-    const { startDate, endDate } = req.body;
-    console.log(startDate, endDate);
-    const transactionList = await tx.getTransaction(startDate, endDate);
-    res.json(transactionList);
-})
 /*
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 app.get("*", function (req, res) {

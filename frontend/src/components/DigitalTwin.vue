@@ -165,6 +165,7 @@ export default {
             };
             await this.tx.sendTransaction(obj);
             this.statusList[1][3] = true;
+            this.statusList = [...this.statusList];
           }
         }
       });

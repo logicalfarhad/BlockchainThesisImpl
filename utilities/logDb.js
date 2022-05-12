@@ -22,23 +22,20 @@ const getDB = () => dbConnection
 const disconnectDB = () => dbConnection.close()
 
 
-const insertLog = async (payload) => {
-    await dbConnection.collection('mqtt').insertOne(payload);
+const insertLog = async (payload, collectionName) => {
+    await dbConnection.collection(collectionName).insertOne(payload);
 }
 
-const insertSensorData = async (payload) => {
-    await dbConnection.collection('sensor').insertOne(payload);
-}
-
-const getLogs = async (currentBlockTimeStamp, nextBlockTimeStamp) => {
+const getLogs = async (currentBlockTimeStamp, nextBlockTimeStamp, collectionName) => {
     let result;
     if (nextBlockTimeStamp == -1) {
-        result = await dbConnection.collection('sensor')
+        result = await dbConnection.collection(collectionName)
             .find({ 'timeStamp': { $lte: currentBlockTimeStamp } }).toArray();
     } else {
-        result = await dbConnection.collection('sensor')
+        result = await dbConnection.collection(collectionName)
             .find({ 'timeStamp': { $lte: currentBlockTimeStamp, $gte: nextBlockTimeStamp } }).toArray();
     }
+
     return result;
 }
 
@@ -118,7 +115,7 @@ const getSensorData = async (startDate, endDate) => {
 }
 module.exports = {
     connectDB,
-    getDB, insertSensorData,
+    getDB,
     disconnectDB,
     getLogs,
     insertLog, getSensorData
