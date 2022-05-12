@@ -1,14 +1,38 @@
 import EnergyPriceArtifact from "../../../build/contracts/EnergyPrice.json";
 import PortSettingArtifact from "../../../build/contracts/PortSetting.json";
 import Web3 from 'web3';
+import moment from 'moment';
 export class TransactionUtil {
     TYPE = '';
     constructor() {
         this.web3 = new Web3('http://localhost:8545');
         this.transactionList = [];
     }
-    async sendTransaction(payload) {
 
+    async getPastEvents() {
+        if (this.TYPE === "portSettingContract") {
+            let options = {
+                fromBlock: 0,
+                toBlock: 'latest'
+            };
+            const contract = await this.getContract();
+            let eventList = await contract.getPastEvents('portEvent', options);
+            for (const event of eventList) {
+                let block = await this.web3.eth.getBlock(event.blockNumber);
+                this.transactionList.push({
+                    creationTime: moment(block.timestamp * 1000).format('MMMM Do YYYY, h:mm:ss a'),
+                    blockNumber: event.blockNumber,
+                    gasUsed: block.gasUsed,
+                    eventId: event.id,
+                    eventMsg: event.returnValues.eventMsg
+                })
+            }
+            return this.transactionList;
+        }
+    }
+
+
+    async sendTransaction(payload) {
         let gasPrize = await this.estimateGas(payload);
         const contract = await this.getContract();
         const addresses = await this.web3.eth.getAccounts();
@@ -21,24 +45,9 @@ export class TransactionUtil {
             return receipt;
 
         } else if (this.TYPE === "portSettingContract") {
-            const receipt = await contract.methods
+            await contract.methods
                 .changePortState(payload.i, payload.j, payload.status, payload._eventMsg)
                 .send({ from: addresses[0], gas: gasPrize });
-
-            let options = {
-                fromBlock: 0,
-                toBlock: 'latest'
-            };
-            let result = await contract.getPastEvents('portEvent', options);
-            let block = await this.web3.eth.getBlock(result.blockNumber);
-            this.transactionList.push({
-                creationTime: block.timestamp,
-                blockNumber: receipt.blockNumber,
-                gasUsed: receipt.gasUsed,
-                eventId: receipt.events.portEvent.id,
-                eventMsg: receipt.events.portEvent.returnValues.eventMsg
-            })
-            return this.transactionList;
         }
 
     }
@@ -70,7 +79,6 @@ export class TransactionUtil {
 
     async getContract() {
         const id = await this.web3.eth.net.getId();
-
         if (this.TYPE === "energyContract") {
             const deployedNetwork = EnergyPriceArtifact.networks[id];
             const contract = new this.web3.eth.Contract(

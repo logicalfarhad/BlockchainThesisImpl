@@ -3,24 +3,16 @@
     <v-row justify="center">
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title>{{ invoice.from.name }}</v-card-title>
-          <v-card-text>
-            {{ invoice.from.address }} <br />
-            {{ invoice.from.details }} <br />
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col md="4">
-        <v-card class="pa2">
           <v-card-title> Total :€{{ total.toFixed(2) }} </v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col md="4"> </v-col>
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title>{{ invoice.to.name }}</v-card-title>
+          <v-card-title>Set eletricity price for per kWh</v-card-title>
           <v-card-text>
             <v-flex xs8>
               <v-text-field
@@ -42,16 +34,18 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col md="4"><h2># Invoice</h2></v-col>
-    </v-row>
-    <v-row>
       <v-col md="8">
-        <v-data-table
-          :headers="headers"
-          :items="sensors"
-          dense
-          class="elevation-1"
-        ></v-data-table>
+        <v-card class="pa2">
+          <v-card-title> Port Statistics</v-card-title>
+          <v-card-text>
+            <v-spacer></v-spacer>
+            <v-data-table
+              :headers="headers"
+              :items="sensors"
+              dense
+              class="elevation-1"
+            ></v-data-table> </v-card-text
+        ></v-card>
       </v-col>
       <v-col md="4">
         <v-card class="pa2">
@@ -115,7 +109,6 @@
 
 <script>
 import { TransactionUtil } from "../utils/tx";
-
 export default {
   name: "Invoice",
   data: () => ({
@@ -148,19 +141,6 @@ export default {
       ampmInTitle: true,
       format: "24hr",
     },
-    invoice: {
-      from: {
-        name: "Invoice from Fraunhofer FIT",
-        address: "Schloss Birlinghoven",
-        details: "Konrad-Adenauer-Straße ",
-        postcode: "53757 Sankt Augustin",
-      },
-      to: {
-        name: "Set eletricity price for per kWh",
-        address: "Von-der-Wettern-Straße 23",
-        details: "51149 Köln",
-      },
-    },
     headers: [
       {
         text: "Device Port",
@@ -175,16 +155,18 @@ export default {
     sensors: [],
   }),
   async created() {
+    this.$root.$emit("showBusyIndicator", true);
     let priceResponse = await fetch("http://localhost:5000/getPrice");
     let price = await priceResponse.json();
     if (price === "") this.unitPrice = 0;
     else this.unitPrice = parseFloat(price);
-
     this.tx = new TransactionUtil();
     this.tx.TYPE = "energyContract";
+    this.$root.$emit("showBusyIndicator", false);
   },
   methods: {
     async createInvoice() {
+       this.$root.$emit("showBusyIndicator", true);
       this.sensors = [];
       const startDate = this.$refs["startDate"].selectedDatetime?.getTime();
       const endDate = this.$refs["endDate"].selectedDatetime?.getTime();
@@ -210,6 +192,8 @@ export default {
         };
       });
       this.total = 0;
+
+       this.$root.$emit("showBusyIndicator", false);
     },
     clear() {},
     async setPrice() {
@@ -224,6 +208,7 @@ export default {
         }
       } catch (error) {
         console.log(error);
+        this.$root.$emit("showBusyIndicator", false);
       } finally {
         this.$root.$emit("showBusyIndicator", false);
       }
@@ -236,7 +221,7 @@ export default {
     },
     getTotalEnergy(item) {
       let totalHours = item.totalHour;
-      let totalPower = (item.totalCurrent * 230) / 1000; //converting ampere to kW
+      let totalPower = (item.totalCurrent * 230) / 1000;
       return totalPower * totalHours;
     },
   },

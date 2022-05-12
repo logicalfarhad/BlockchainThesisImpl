@@ -55,7 +55,7 @@ const getSensorData = async (startDate, endDate) => {
                     $min: "$timeStamp"
                 },
                 maxTime: {
-                    "$max": "$timeStamp"
+                    $max: "$timeStamp"
                 }
             }
         },

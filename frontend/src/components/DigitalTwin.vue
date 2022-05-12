@@ -57,13 +57,13 @@
       <v-col md="2"> </v-col>
       <v-col md="8">
         <v-card class="pa2">
-          <v-card-title> Port switching events </v-card-title>
+          <v-card-title> Port switching event dashboard </v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
             <v-data-table
               dense
               :headers="headers"
-              :items="portList"
+              :items="eventList"
               :items-per-page="5"
               class="elevation-1"
             >
@@ -76,20 +76,24 @@
 
 <script>
 import { TransactionUtil } from "../utils/tx";
+import { io } from "socket.io-client";
+
 export default {
   data() {
     return {
       items: [],
+      socket: io(),
       tx: null,
       statusList: [
         [false, false, false, false],
         [false, false, false, false],
       ],
       cols: 2,
-      portList: [],
+      eventList: [],
       headers: [
-        { text: "Creation Time", sortable: false, value: "creationTime" },
-        { text: "Block No.", sortable: false, value: "blockNumber" },
+        { text: "Event id", sortable: false, value: "eventId" },
+        { text: "Creation time", sortable: false, value: "creationTime" },
+        { text: "Block no.", sortable: false, value: "blockNumber" },
         { text: "Gas used", sortable: false, value: "gasUsed" },
         { text: "Event message", value: "eventMsg" },
       ],
@@ -111,15 +115,19 @@ export default {
     for (let i = 1; i <= 8; i++) {
       this.items.push({ text: "Port " + i });
     }
-
     let ports = await this.tx.getPortList();
     for (let i = 0; i < ports.length; i++) {
       for (let j = 0; j < ports[i].length; j++) {
         this.statusList[i][j] = ports[i][j].status;
       }
     }
-
-    this.statusList = [...this.statusList];
+    this.$root.$emit("showBusyIndicator", true);
+    this.eventList = await this.tx.getPastEvents();
+    this.eventList = this.eventList.sort(
+      (a, b) => b.blockNumber - a.blockNumber
+    );
+    this.eventList = [...this.eventList];
+    this.$root.$emit("showBusyIndicator", false);
   },
   methods: {
     async changeStatus(status, i, j, item) {
@@ -129,13 +137,38 @@ export default {
         i: i,
         j: j,
         status: status,
-        _eventMsg: "User changed " + item.text,
+        _eventMsg: status
+          ? "User switched on " + item.text
+          : "User switched off " + item.text,
       };
-
-      let receipt = await this.tx.sendTransaction(obj);
+      await this.tx.sendTransaction(obj);
+      this.eventList = await this.tx.getPastEvents();
+      this.eventList = this.eventList.sort(
+        (a, b) => b.blockNumber - a.blockNumber
+      );
+      this.eventList = [...this.eventList];
       this.$root.$emit("showBusyIndicator", false);
-      this.portList = receipt;
     },
+  },
+  async mounted() {
+    this.socket = io.connect("http://localhost:5000");
+    this.socket.on("connect", async () => {
+      this.socket.on("data_from_mqtt", async (msg) => {
+        if (msg.v > 0.08 && msg.idx < 8) {
+          console.log(msg.v);
+          if (this.statusList[1][3] === false) {
+            let obj = {
+              i: 1,
+              j: 3,
+              status: true,
+              _eventMsg: "Port 8 switched on because of Port " + msg.idx,
+            };
+            await this.tx.sendTransaction(obj);
+            this.statusList[1][3] = true;
+          }
+        }
+      });
+    });
   },
 };
 </script>

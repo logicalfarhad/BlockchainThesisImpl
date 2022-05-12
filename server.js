@@ -90,15 +90,12 @@ app.post("/getSensorData", async (req, res) => {
     let sensorData = await db.getSensorData(startDate, endDate);
     res.json(sensorData);
 })
-/*
 app.post("/setPrice", async (req, res) => {
     const { price } = req.body;
+    console.log(price);
     let response = await tx.setEnergyPrice(price);
     res.json(response.status);
 })
-*/
-
-
 app.get("/getPrice", async (req, res) => {
     let price = 0;
     try {

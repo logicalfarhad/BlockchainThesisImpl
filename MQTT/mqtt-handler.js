@@ -8,7 +8,6 @@ const TransactionUtil = require("../utilities/tx");
 class MQTTHandler {
   constructor() {
     this.tx = new TransactionUtil();
-    //   this.payloadArr = [];
     this.deviceLogArr = [];
     this.sensorLogArr = [];
     this.flag = true;
@@ -55,8 +54,10 @@ class MQTTHandler {
     let time = new Date().getTime();
     let payload = JSON.parse(messageBuffer.toString());
     payload = { ...payload, timeStamp: time }
-
     if (topic.includes('sensor')) {
+      if (this.IO) {
+        this.IO.emit('data_from_mqtt', payload);
+      }
       this.sensorLogArr.push({ ...payload });
       Db.insertSensorData({ ...payload });
       //  console.log(payload)

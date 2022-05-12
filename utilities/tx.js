@@ -1,13 +1,15 @@
+require('dotenv').config()
 const TransactionArtifact = require("../build/contracts/Transaction.json");
 const EnergyPriceArtifact = require("../build/contracts/EnergyPrice.json");
 const Provider = require("@truffle/hdwallet-provider");
 const Web3 = require("web3");
-const address = '0x2C30D6CbAF87E0b11f328e31523021e8A3484F35';
-const privateKey = '494b3f9f6447d53f39fe6eeb8edd09ceaadf0b87c43d6e8204ee04818578874f';
+const address = process.env.ACCOUNT_ADDRESS;
+const private_key = process.env.ACCOUNT_PRIVATE_KEY;
+const dev_url = process.env.GANACHE_DEV_URL || 'http://localhost:8545/';
 
 class TransactionUtil {
   constructor() {
-    const provider = new Provider(privateKey, 'http://localhost:8545/');
+    const provider = new Provider(private_key, dev_url);
     this.web3 = new Web3(provider);
   }
 
@@ -29,7 +31,6 @@ class TransactionUtil {
     let price = await contract.methods.getPrice().call();
     return price;
   }
-
   async sendTransaction(payload) {
     let gasPrize = await this.estimateGas(payload);
     const contract = await this.getContract();
@@ -38,8 +39,6 @@ class TransactionUtil {
       .send({ from: address, gas: gasPrize });
     return receipt;
   }
-
-
   async getTransaction(startDate, endDate) {
     const contract = await this.getContract();
     let logCount = await contract.methods.logCount().call();
@@ -75,7 +74,6 @@ class TransactionUtil {
       .estimateGas({ from: address });
     return gasPrize;
   }
-
   async estimateEnergyPriceGas(payload) {
     const contract = await this.getEnergyPriceContract();
     const gasPrize = await contract.methods
@@ -83,7 +81,6 @@ class TransactionUtil {
       .estimateGas({ from: address });
     return gasPrize;
   }
-
   async getContract() {
     const id = await this.web3.eth.net.getId();
     const deployedNetwork = TransactionArtifact.networks[id];

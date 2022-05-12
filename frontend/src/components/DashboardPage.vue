@@ -77,9 +77,7 @@
               <template v-slot:item="{ item }">
                 <tr>
                   <td>
-                    {{
-                      item.count
-                    }}
+                    {{ item.count }}
                   </td>
                   <td v-if="item.matched">
                     <v-icon color="green">verified</v-icon>
@@ -134,7 +132,6 @@
               <v-list-item-title>Time from Blockchain</v-list-item-title>
               <v-list-item-subtitle>{{
                 infoItem.blocktimeStamp
-                  | moment("dddd, MMMM Do YYYY, h:mm:ss a")
               }}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -164,6 +161,7 @@
 </template>
 <script>
 import Chart from "./Chart";
+import moment from "moment";
 export default {
   components: {
     Chart,
@@ -244,13 +242,13 @@ export default {
 
       if (blockData.length === dbdata.length) {
         for (let i = 0; i < dbdata.length; i++) {
-          let parsedBlockDate = new Date();
-          parsedBlockDate.setTime(blockData[i].timeStamp);
           if (blockData[i].logHash == dbdata[i]) {
             this.logList.push({
               blocklogHash: blockData[i].logHash,
               dblogHash: dbdata[i],
-              blocktimeStamp: parsedBlockDate,
+              blocktimeStamp: moment(blockData[i].timeStamp).format(
+                "MMMM Do YYYY, h:mm:ss a"
+              ),
               matched: true,
               count: i + 1,
             });
@@ -258,7 +256,9 @@ export default {
             this.logList.push({
               blocklogHash: blockData[i].logHash,
               dblogHash: dbdata[i],
-              blocktimeStamp: parsedBlockDate,
+              blocktimeStamp: moment(blockData[i].timeStamp).format(
+                "MMMM Do YYYY, h:mm:ss a"
+              ),
               matched: false,
               count: i + 1,
             });
@@ -277,7 +277,5 @@ export default {
     tomorrow.setDate(tomorrow.getDate() + 1);
     this.dateProps.max = tomorrow.toISOString();
   },
-
-  computed: {},
 };
 </script>

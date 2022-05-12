@@ -16,7 +16,6 @@ const router = new VueRouter({
 
 
 Vue.use(Plugin)
-Vue.use(require('vue-moment'));
 Vue.use(DateTimePicker);
 Vue.use(VueRouter);
 
