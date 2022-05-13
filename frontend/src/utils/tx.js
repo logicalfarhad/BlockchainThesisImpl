@@ -7,10 +7,9 @@ export class TransactionUtil {
     TYPE = '';
     constructor() {
         this.web3 = new Web3(dev_url);
-        this.transactionList = [];
     }
-
     async getPastEvents() {
+        const transactionList = [];
         if (this.TYPE === "portSettingContract") {
             let options = {
                 fromBlock: 0,
@@ -20,7 +19,7 @@ export class TransactionUtil {
             let eventList = await contract.getPastEvents('portEvent', options);
             for (const event of eventList) {
                 let block = await this.web3.eth.getBlock(event.blockNumber);
-                this.transactionList.push({
+                transactionList.push({
                     creationTime: moment(block.timestamp * 1000).format('MMMM Do YYYY, h:mm:ss a'),
                     blockNumber: event.blockNumber,
                     gasUsed: block.gasUsed,
@@ -28,27 +27,28 @@ export class TransactionUtil {
                     eventMsg: event.returnValues.eventMsg
                 })
             }
-            return this.transactionList;
+            return transactionList.sort(
+                (a, b) => b.blockNumber - a.blockNumber
+            );;
         }
     }
-
-
     async sendTransaction(payload) {
         let gasPrize = await this.estimateGas(payload);
+        console.log(gasPrize);
         const contract = await this.getContract();
         const addresses = await this.web3.eth.getAccounts();
 
         if (this.TYPE === 'energyContract') {
             const receipt = await contract.methods
                 .setCost(payload.price)
-                .send({ from: addresses[0], gas: gasPrize });
+                .send({ from: addresses[0], gasPrice: 0 });
 
             return receipt;
 
         } else if (this.TYPE === "portSettingContract") {
             await contract.methods
                 .changePortState(payload.i, payload.j, payload.status, payload._eventMsg)
-                .send({ from: addresses[0], gas: gasPrize });
+                .send({ from: addresses[0], gasPrice: 0 });
         }
 
     }

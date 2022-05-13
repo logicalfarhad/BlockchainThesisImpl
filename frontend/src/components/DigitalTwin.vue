@@ -143,10 +143,6 @@ export default {
       };
       await this.tx.sendTransaction(obj);
       this.eventList = await this.tx.getPastEvents();
-      this.eventList = this.eventList.sort(
-        (a, b) => b.blockNumber - a.blockNumber
-      );
-      this.eventList = [...this.eventList];
       this.socket.emit("change_port_status", {
         status: status,
         portNumber: item.text,
