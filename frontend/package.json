@@ -19,7 +19,8 @@
     "vue-router": "^3.2.0",
     "vuetify": "^2.4.0",
     "vuetify-datetime-picker": "^2.1.1",
-    "web3": "^1.7.1"
+    "web3": "^1.7.1",
+    "web3js-quorum": "^22.4.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
