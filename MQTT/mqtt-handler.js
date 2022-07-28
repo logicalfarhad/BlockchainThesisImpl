@@ -21,9 +21,7 @@ class MQTTHandler {
     this.mqttClient = mqtt.connect(connectUrl, {
       clientId,
       clean: true,
-      connectTimeout: 4000,
-      // username: process.env.MQTT_USERNAME,
-      //  password: process.env.MQTT_PASSWORD
+      connectTimeout: 4000
     });
     this.mqttClient.on("error", (error) => this.onMQTTError(error));
     this.mqttClient.on("connect", () => this.onMQTTConnect());
@@ -36,7 +34,16 @@ class MQTTHandler {
     this.tree = new Merkeltree();
     this.IO.on("connect", (socket) => {
       socket.on("change_port_status", (payload) => {
-        this.mqttClient.publish(Topics.TOPIC_FIT_TELEMETRY, JSON.stringify(payload), { qos: 0 });
+//        console.log(payload);
+        
+        if(typeof payload.portNumber ==="string"){
+          let port = payload.portNumber.split(" ").pop();
+          this.mqttClient.publish("blockchain/notary/epc/cmd/port/" + port, payload.status == true ? "1" : "0");
+          console.log(port);
+        }
+
+        
+        // this.mqttClient.publish(Topics.TOPIC_FIT_TELEMETRY, JSON.stringify(payload), { qos: 0 });
       });
     });
   }
@@ -64,22 +71,17 @@ class MQTTHandler {
       this.sensorList.push({ ...payload });
       Db.insertLog({ ...payload }, "sensor");
     } else if (topic.includes('device')) {
+      if (this.IO) {
+        this.IO.emit('telemetry_from_mqtt', payload);
+      }
       this.telemetryList.push({ ...payload });
       Db.insertLog({ ...payload }, "telemetry");
     }
-   // console.log("before")
+    // console.log("before")
     if (this.singleRun == true) {
       setInterval(() => {
-      //  console.log("after");
-       // console.log(this.sensorList);
         this.tree.generate(this.sensorList, (sensorHash) => {
-
           this.tree.generate(this.telemetryList, (deviceHash) => {
-
-            //console.log(sensorHash);
-           // console.log("###########")
-           // console.log(deviceHash);
-
             this.tree.generate([sensorHash, deviceHash], (finalHash) => {
               let txObj = {
                 logHash: finalHash,

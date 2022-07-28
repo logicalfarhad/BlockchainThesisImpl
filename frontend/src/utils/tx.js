@@ -52,6 +52,12 @@ export class TransactionUtil {
         }
 
     }
+
+    async getPortById(i, j) {
+        const contract = await this.getContract();
+        let port = await contract.methods.getPortById(i, j).call();
+        return port;
+    }
     async getPortList() {
         const contract = await this.getContract();
         let portList = await contract.methods.getPortList().call()

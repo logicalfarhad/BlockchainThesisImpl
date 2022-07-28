@@ -84,6 +84,7 @@ export default {
       items: [],
       socket: io(),
       tx: null,
+      portConfig: null,
       statusList: [
         [false, false, false, false],
         [false, false, false, false],
@@ -127,7 +128,50 @@ export default {
       (a, b) => b.blockNumber - a.blockNumber
     );
     this.eventList = [...this.eventList];
-    this.$root.$emit("showBusyIndicator", false);
+   this.$root.$emit("showBusyIndicator", false);
+
+    this.portConfig = [
+      {
+        id: 1,
+        indx: 0,
+        jndx: 0,
+      },
+      {
+        id: 2,
+        indx: 0,
+        jndx: 1,
+      },
+      {
+        id: 3,
+        indx: 0,
+        jndx: 2,
+      },
+      {
+        id: 4,
+        indx: 0,
+        jndx: 3,
+      },
+      {
+        id: 5,
+        indx: 1,
+        jndx: 0,
+      },
+      {
+        id: 6,
+        indx: 1,
+        jndx: 1,
+      },
+      {
+        id: 7,
+        indx: 1,
+        jndx: 2,
+      },
+      {
+        id: 8,
+        indx: 1,
+        jndx: 3,
+      },
+    ];
   },
   methods: {
     async changeStatus(status, i, j, item) {
@@ -147,7 +191,7 @@ export default {
         status: status,
         portNumber: item.text,
       });
-      this.$root.$emit("showBusyIndicator", false);
+       this.$root.$emit("showBusyIndicator", false);
     },
   },
   async mounted() {
@@ -169,6 +213,44 @@ export default {
             this.statusList[1][3] = true;
             this.statusList = [...this.statusList];
           }
+        }
+      });
+
+      this.socket.on("telemetry_from_mqtt", async (msg) => {
+        this.$root.$emit("showBusyIndicator", false);
+
+        for (let port of msg.portstates) {
+          let portNo = port.port;
+
+          let config = this.portConfig.filter((item) => {
+            return item.id == portNo;
+          })[0];
+
+          console.log(config);
+
+          let obj = {
+            i: config.indx,
+            j: config.jndx,
+            status: port.state == 1 ? true : false,
+            _eventMsg: "Changed because of telemetry event",
+          };
+
+          let porttx = await this.tx.getPortById(config.indx, config.jndx);
+          //console.log(porttx);
+          if (porttx.status !== obj.status) {
+            this.statusList[config.indx][config.jndx] = obj.status;
+            this.statusList = [...this.statusList];
+            await this.tx.sendTransaction(obj);
+            this.eventList = await this.tx.getPastEvents();
+            this.socket.emit("change_port_status", {
+              status: obj.status,
+              portNumber: config.id,
+            });
+
+            this.eventList = [...this.eventList];
+          }
+          //  console.log(obj);
+          // this.tx.sendTransaction(obj);
         }
       });
     });

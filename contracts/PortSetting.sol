@@ -32,6 +32,14 @@ contract PortSetting {
         portList[i][j] = Port(status, _eventMsg);
     }
 
+    function getPortById(uint256 i, uint256 j)
+        public
+        view
+        returns (Port memory)
+    {
+        return portList[i][j];
+    }
+
     function getPortList() public view returns (Port[4][2] memory _portList) {
         return portList;
     }

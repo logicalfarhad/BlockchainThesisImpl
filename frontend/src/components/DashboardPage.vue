@@ -270,7 +270,9 @@ export default {
       let didnotMatch = this.logList.length - totalMatched;
       this.data.push(["Matched", totalMatched], ["Did not match", didnotMatch]);
     },
-    clear() {},
+    clear() {
+    
+    },
   },
   created() {
     const today = new Date();
