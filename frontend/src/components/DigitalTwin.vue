@@ -128,7 +128,7 @@ export default {
       (a, b) => b.blockNumber - a.blockNumber
     );
     this.eventList = [...this.eventList];
-   this.$root.$emit("showBusyIndicator", false);
+ //  this.$root.$emit("showBusyIndicator", false);
 
     this.portConfig = [
       {
