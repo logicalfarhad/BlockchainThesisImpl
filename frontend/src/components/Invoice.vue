@@ -3,7 +3,7 @@
     <v-row justify="center">
       <v-col md="4">
         <v-card class="pa2">
-          <v-card-title> Total :€{{ total.toFixed(2) }} </v-card-title>
+          <v-card-title> Total :€{{ total.toFixed(3) }} </v-card-title>
           <v-card-text>
             <v-spacer></v-spacer>
           </v-card-text>
@@ -178,7 +178,10 @@ export default {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ startDate: startDate, endDate: endDate }),
       };
-      const blockResponse = await fetch(this.APP_URL + "/getSensorData",requestOptions);
+      const blockResponse = await fetch(
+        this.APP_URL + "/getSensorData",
+        requestOptions
+      );
       const sensorData = await blockResponse.json();
       this.$root.$emit("showBusyIndicator", false);
       this.sensors = sensorData.map((item) => {
@@ -212,10 +215,13 @@ export default {
       }
     },
     calculatePrice() {
+      console.log(this.sensors);
       const sum = this.sensors
         .map((item) => item.totalEnergy)
         .reduce((prev, curr) => prev + curr, 0);
+      console.log(sum);
       this.total = sum * this.unitPrice;
+      console.log(this.total);
     },
     getTotalEnergy(item) {
       let totalHours = item.totalHour;

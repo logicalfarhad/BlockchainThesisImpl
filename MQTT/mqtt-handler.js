@@ -22,8 +22,8 @@ class MQTTHandler {
       clientId,
       clean: true,
       connectTimeout: 4000,
-      username: process.env.MQTT_USERNAME,
-      password: process.env.MQTT_PASSWORD
+      // username: process.env.MQTT_USERNAME,
+      //  password: process.env.MQTT_PASSWORD
     });
     this.mqttClient.on("error", (error) => this.onMQTTError(error));
     this.mqttClient.on("connect", () => this.onMQTTConnect());
@@ -67,10 +67,19 @@ class MQTTHandler {
       this.telemetryList.push({ ...payload });
       Db.insertLog({ ...payload }, "telemetry");
     }
+   // console.log("before")
     if (this.singleRun == true) {
       setInterval(() => {
+      //  console.log("after");
+       // console.log(this.sensorList);
         this.tree.generate(this.sensorList, (sensorHash) => {
+
           this.tree.generate(this.telemetryList, (deviceHash) => {
+
+            //console.log(sensorHash);
+           // console.log("###########")
+           // console.log(deviceHash);
+
             this.tree.generate([sensorHash, deviceHash], (finalHash) => {
               let txObj = {
                 logHash: finalHash,

@@ -29,7 +29,7 @@ module.exports = {
       provider: () => {
         return new HDWalletProvider(mnemonic, "http://127.0.0.1:22000");
       },
-      gas: "0x1ffffffffffffe",
+      gas: "6721975",
       gasPrice: 0
     }
   },

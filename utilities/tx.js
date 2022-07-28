@@ -32,6 +32,8 @@ class TransactionUtil {
     return price;
   }
   async sendTransaction(payload) {
+    console.log("payload");
+    console.log(payload)
     let gasPrize = await this.estimateGas(payload);
     const contract = await this.getContract();
     const receipt = await contract.methods
