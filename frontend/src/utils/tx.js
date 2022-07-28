@@ -2,11 +2,15 @@ import EnergyPriceArtifact from "../../../build/contracts/EnergyPrice.json";
 import PortSettingArtifact from "../../../build/contracts/PortSetting.json";
 import Web3 from 'web3';
 import moment from 'moment';
+import Web3Quorum from "web3js-quorum";
+
 const dev_url = process.env.VUE_APP_BLOCKCHAIN_NETWORK_URL;
+const privateFor = process.env.VUE_APP_PRIVATE_FOR;
 export class TransactionUtil {
     TYPE = '';
     constructor() {
         this.web3 = new Web3(dev_url);
+        // this.web3 = new Web3Quorum(new Web3(dev_url));
     }
     async getPastEvents() {
         const transactionList = [];
@@ -33,22 +37,40 @@ export class TransactionUtil {
         }
     }
     async sendTransaction(payload) {
-        let gasPrize = await this.estimateGas(payload);
-        console.log(gasPrize);
+        let gasPrice = await this.estimateGas(payload);
         const contract = await this.getContract();
         const addresses = await this.web3.eth.getAccounts();
-
         if (this.TYPE === 'energyContract') {
             const receipt = await contract.methods
                 .setCost(payload.price)
-                .send({ from: addresses[0], gasPrice: 0 });
+                .send({ from: addresses[0], gas: gasPrice });
 
             return receipt;
 
         } else if (this.TYPE === "portSettingContract") {
             await contract.methods
                 .changePortState(payload.i, payload.j, payload.status, payload._eventMsg)
-                .send({ from: addresses[0], gasPrice: 0 });
+                .send({ from: addresses[0], gas: gasPrice });
+        }
+
+    }
+    async getContract() {
+        const id = await this.web3.eth.net.getId();
+        if (this.TYPE === "energyContract") {
+            const deployedNetwork = EnergyPriceArtifact.networks[id];
+            const contract = new this.web3.eth.Contract(
+                EnergyPriceArtifact.abi,
+                deployedNetwork.address
+            );
+            return contract;
+
+        } else if (this.TYPE === "portSettingContract") {
+            const deployedNetwork = PortSettingArtifact.networks[id];
+            const contract = new this.web3.eth.Contract(
+                PortSettingArtifact.abi,
+                deployedNetwork.address
+            );
+            return contract;
         }
 
     }
@@ -81,27 +103,5 @@ export class TransactionUtil {
                 .estimateGas({ from: addresses[0] });
             return gasPrize;
         }
-
-    }
-
-    async getContract() {
-        const id = await this.web3.eth.net.getId();
-        if (this.TYPE === "energyContract") {
-            const deployedNetwork = EnergyPriceArtifact.networks[id];
-            const contract = new this.web3.eth.Contract(
-                EnergyPriceArtifact.abi,
-                deployedNetwork.address
-            );
-            return contract;
-
-        } else if (this.TYPE === "portSettingContract") {
-            const deployedNetwork = PortSettingArtifact.networks[id];
-            const contract = new this.web3.eth.Contract(
-                PortSettingArtifact.abi,
-                deployedNetwork.address
-            );
-            return contract;
-        }
-
     }
 }
