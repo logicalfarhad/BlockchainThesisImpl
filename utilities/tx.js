@@ -3,12 +3,9 @@ const TransactionArtifact = require("../build/contracts/Transaction.json");
 const EnergyPriceArtifact = require("../build/contracts/EnergyPrice.json");
 const Provider = require("@truffle/hdwallet-provider");
 const Web3 = require("web3");
-const Web3Quorum = require("web3js-quorum");
 const address = process.env.ACCOUNT_ADDRESS;
 const private_key = process.env.ACCOUNT_PRIVATE_KEY;
 const dev_url = process.env.BLOCKCHAIN_NETWORK_URL;
-const private_for = process.env.PRIVATE_FOR;
-
 class TransactionUtil {
   constructor() {
     const provider = new Provider(private_key, dev_url);
