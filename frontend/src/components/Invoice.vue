@@ -25,9 +25,7 @@
             Price in smart contract: {{ unitPrice }}€ <br />
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary darken-1" @click="calculatePrice"
-              >Calculate</v-btn
-            >
+           
             <v-btn color="primary darken-1" @click="setPrice">Set Price</v-btn>
           </v-card-actions>
         </v-card>
@@ -98,7 +96,7 @@
           <v-card-actions>
             <!--  <v-btn color="primary darken-1" @click="clear">CLEAR</v-btn> -->
             <v-btn color="primary darken-1" @click="createInvoice"
-              >Create</v-btn
+              >Calculate</v-btn
             >
           </v-card-actions>
         </v-card>
@@ -212,7 +210,6 @@ export default {
           delete lastItem["timestamp"];
           delete lastItem["v"];
 
-          console.log(lastItem);
           lastItem.totalCurrent = (lastItem.totalCurrent * 230) / 1000;
           lastItem.totalRuntime = lastItem.totalRuntime / 3600;
 
@@ -232,6 +229,13 @@ export default {
         };
       });
       this.total = 0;
+
+      const sum = this.sensors
+        .map((item) => item.totalEnergy)
+        .reduce((prev, curr) => prev + curr, 0);
+      console.log(sum);
+      this.total = sum * this.unitPrice;
+      console.log(this.total);
 
       this.$root.$emit("showBusyIndicator", false);
     },

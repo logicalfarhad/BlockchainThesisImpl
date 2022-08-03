@@ -34,16 +34,11 @@ class MQTTHandler {
     this.tree = new Merkeltree();
     this.IO.on("connect", (socket) => {
       socket.on("change_port_status", (payload) => {
-//        console.log(payload);
-        
-        if(typeof payload.portNumber ==="string"){
+        if (typeof payload.portNumber === "string") {
           let port = payload.portNumber.split(" ").pop();
           this.mqttClient.publish("blockchain/notary/epc/cmd/port/" + port, payload.status == true ? "1" : "0");
           console.log(port);
         }
-
-        
-        // this.mqttClient.publish(Topics.TOPIC_FIT_TELEMETRY, JSON.stringify(payload), { qos: 0 });
       });
     });
   }
@@ -87,7 +82,7 @@ class MQTTHandler {
                 logHash: finalHash,
                 timeStamp: new Date().getTime(),
               };
-              this.tx.sendTransaction(txObj);
+              //  this.tx.sendTransaction(txObj);
             });
           });
         });
