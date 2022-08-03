@@ -43,59 +43,31 @@ const getLogs = async (currentBlockTimeStamp, nextBlockTimeStamp, collectionName
 const getSensorData = async (startDate, endDate) => {
     let pipeline = [
         {
-            $group: {
-                _id: '$idx',
-                totalCurrent: {
-                    $sum: "$v"
-                },
-                minTime: {
-                    $min: "$timeStamp"
-                },
-                maxTime: {
-                    $max: "$timeStamp"
-                }
-            }
-        },
-        {
-            $project: {
-                port: "$_id",
-                _id: 0,
-                totalCurrent: "$totalCurrent",
-                maxTime: { "$toDate": "$maxTime" },
-                minTime: { "$toDate": "$minTime" }
-            }
-        },
-        {
-            $project: {
-                port: "$port",
-                _id: 0,
-                totalCurrent: "$totalCurrent",
-                duration: {
-                    $dateDiff: {
-                        startDate: "$minTime",
-                        endDate: "$maxTime",
-                        unit: "minute"
-                    }
-                }
-            }
-        },
-        {
-            $project: {
-                port: "$port",
-                totalCurrent: "$totalCurrent",
-                totalHour: {
-                    $divide: [
-                        "$duration", 60
-                    ]
-                }
-            }
-        },
-        {
-            $sort: {
-                port: 1
-            }
+          $addFields: {
+            timestamp: {
+              $toDate: '$timeStamp'
+            },
+            totalCurrent: 0,
+            totalRuntime: 0,
+            timeDiff: 0
+          }
+        }, {
+          $project: {
+            _id: 0,
+            idx: 1,
+            v: 1,
+            timestamp: 1,
+            totalCurrent: 1,
+            totalRuntime: 1,
+            timeDiff: 1
+          }
+        }, {
+          $sort: {
+            idx: 1,
+            timestamp: 1
+          }
         }
-    ];
+      ];
 
     if (startDate && endDate) { // add filter to the pipeline if there is date range
         pipeline.unshift({
