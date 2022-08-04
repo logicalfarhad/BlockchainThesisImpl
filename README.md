@@ -8,7 +8,7 @@ There are three components in the repository:
 - Backend
 - Frontend
 
-## Blockchain network
+#### Blockchain network
 Quorum defined in the [blockchain/network](blockchain/network/4-nodes-istanbul-tessera-docker-compose). It is a four-node network generated using the [quorum-wizard](https://github.com/ConsenSys/quorum-wizard). It uses the Istanbul consensus algorithm.
 Bash scripts are provided to [start](blockchain/network/4-nodes-istanbul-tessera-docker-compose/start.sh) and [stop](blockchain/network/4-nodes-istanbul-tessera-docker-compose/stop.sh) the blockchain network.
 
