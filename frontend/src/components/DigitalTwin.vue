@@ -265,7 +265,7 @@ export default {
             return item.id == portNo;
           })[0];
 
-             console.log(config);
+          console.log(config);
 
           let obj = {
             i: config.indx,

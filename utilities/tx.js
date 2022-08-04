@@ -6,21 +6,20 @@ const Web3 = require("web3");
 const address = process.env.ACCOUNT_ADDRESS;
 const private_key = process.env.ACCOUNT_PRIVATE_KEY;
 const dev_url = process.env.BLOCKCHAIN_NETWORK_URL;
-
 class TransactionUtil {
   constructor() {
     const provider = new Provider(private_key, dev_url);
     this.web3 = new Web3(provider);
+    //this.web3 = new Web3Quorum(new Web3(dev_url));
   }
 
   async setEnergyPrice(payload) {
-    let gasPrize = await this.estimateEnergyPriceGas(payload);
+    let gasPrice = await this.estimateEnergyPriceGas(payload);
     const contract = await this.getEnergyPriceContract();
-
     let receipt;
     try {
       receipt = await contract.methods.setCost(payload)
-        .send({ from: address, gas: gasPrize })
+        .send({ from: address, gas: gasPrice });
     } catch (err) {
       console.log(err)
     }
@@ -32,16 +31,15 @@ class TransactionUtil {
     return price;
   }
   async sendTransaction(payload) {
-    console.log("payload");
-    console.log(payload)
-    let gasPrize = await this.estimateGas(payload);
+    let gasPrice = await this.estimateGas(payload);
     const contract = await this.getContract();
     const receipt = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
-      .send({ from: address, gas: gasPrize });
+      .send({ from: address, gas: gasPrice });
     //  console.log(receipt);
     return receipt;
   }
+
   async getTransaction(startDate, endDate) {
     const contract = await this.getContract();
     let logCount = await contract.methods.logCount().call();
@@ -72,17 +70,17 @@ class TransactionUtil {
   }
   async estimateGas(payload) {
     const contract = await this.getContract();
-    const gasPrize = await contract.methods
+    const gasPrice = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
       .estimateGas({ from: address });
-    return gasPrize;
+    return gasPrice;
   }
   async estimateEnergyPriceGas(payload) {
     const contract = await this.getEnergyPriceContract();
-    const gasPrize = await contract.methods
+    const gasPrice = await contract.methods
       .setCost(payload)
       .estimateGas({ from: address });
-    return gasPrize;
+    return gasPrice;
   }
   async getContract() {
     const id = await this.web3.eth.net.getId();

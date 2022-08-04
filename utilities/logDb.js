@@ -67,7 +67,7 @@ const getSensorData = async (startDate, endDate) => {
                 timestamp: 1
             }
         }
-    ];
+      ];
 
     if (startDate && endDate) { // add filter to the pipeline if there is date range
         pipeline.unshift({

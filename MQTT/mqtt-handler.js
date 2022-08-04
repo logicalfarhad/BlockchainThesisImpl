@@ -92,7 +92,7 @@ class MQTTHandler {
                 logHash: finalHash,
                 timeStamp: new Date().getTime(),
               };
-              this.tx.sendTransaction(txObj);
+                this.tx.sendTransaction(txObj);
             });
           });
         });
