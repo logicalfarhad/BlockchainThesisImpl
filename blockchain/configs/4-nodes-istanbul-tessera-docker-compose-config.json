@@ -1,0 +1,107 @@
+{
+  "network": {
+    "name": "4-nodes-istanbul-tessera-docker-compose",
+    "verbosity": 5,
+    "consensus": "istanbul",
+    "quorumVersion": "21.4.0",
+    "transactionManager": "21.1.1",
+    "permissioned": true,
+    "genesisFile": "none",
+    "generateKeys": false,
+    "configDir": "network/4-nodes-istanbul-tessera-docker-compose/resources",
+    "deployment": "docker-compose",
+    "cakeshop": "0.12.1",
+    "splunk": false,
+    "prometheus": false,
+    "reporting": false,
+    "reportingRpcPort": "4000",
+    "reportingUiPort": "3000",
+    "networkId": "10",
+    "customizePorts": true,
+    "cakeshopPort": "8999",
+    "remoteDebug": false,
+    "splunkIp": "127.0.0.1",
+    "splunkPort": "8000",
+    "splunkHecPort": "8088"
+  },
+  "nodes": [
+    {
+      "quorum": {
+        "ip": "172.16.146.11",
+        "devP2pPort": "21000",
+        "rpcPort": "22000",
+        "wsPort": "23000",
+        "graphQlPort": "24000",
+        "raftPort": "50401"
+      },
+      "tm": {
+        "ip": "172.16.146.101",
+        "thirdPartyPort": "9081",
+        "p2pPort": "9001"
+      }
+    },
+    {
+      "quorum": {
+        "ip": "172.16.146.12",
+        "devP2pPort": "21001",
+        "rpcPort": "22001",
+        "wsPort": "23001",
+        "graphQlPort": "24001",
+        "raftPort": "50402"
+      },
+      "tm": {
+        "ip": "172.16.146.102",
+        "thirdPartyPort": "9082",
+        "p2pPort": "9002"
+      }
+    },
+    {
+      "quorum": {
+        "ip": "172.16.146.13",
+        "devP2pPort": "21002",
+        "rpcPort": "22002",
+        "wsPort": "23002",
+        "graphQlPort": "24002",
+        "raftPort": "50403"
+      },
+      "tm": {
+        "ip": "172.16.146.103",
+        "thirdPartyPort": "9083",
+        "p2pPort": "9003"
+      }
+    },
+    {
+      "quorum": {
+        "ip": "172.16.146.14",
+        "devP2pPort": "21003",
+        "rpcPort": "22003",
+        "wsPort": "23003",
+        "graphQlPort": "24003",
+        "raftPort": "50404"
+      },
+      "tm": {
+        "ip": "172.16.146.104",
+        "thirdPartyPort": "9084",
+        "p2pPort": "9004"
+      }
+    }
+  ],
+  "containerPorts": {
+    "dockerSubnet": "172.16.146.0/24",
+    "quorum": {
+      "rpcPort": 8545,
+      "p2pPort": 30303,
+      "raftPort": 50401,
+      "wsPort": 8546,
+      "graphQlPort": 8547
+    },
+    "tm": {
+      "p2pPort": 9001,
+      "thirdPartyPort": 9080
+    },
+    "reporting": {
+      "rpcPort": 4000,
+      "uiPort": 3000
+    }
+  }
+}

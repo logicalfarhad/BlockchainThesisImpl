@@ -25,9 +25,7 @@
             Price in smart contract: {{ unitPrice }}€ <br />
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary darken-1" @click="calculatePrice"
-              >Calculate</v-btn
-            >
+           
             <v-btn color="primary darken-1" @click="setPrice">Set Price</v-btn>
           </v-card-actions>
         </v-card>
@@ -98,7 +96,7 @@
           <v-card-actions>
             <!--  <v-btn color="primary darken-1" @click="clear">CLEAR</v-btn> -->
             <v-btn color="primary darken-1" @click="createInvoice"
-              >Create</v-btn
+              >Calculate</v-btn
             >
           </v-card-actions>
         </v-card>
@@ -172,7 +170,6 @@ export default {
       const startDate = this.$refs["startDate"].selectedDatetime?.getTime();
       const endDate = this.$refs["endDate"].selectedDatetime?.getTime();
       this.$root.$emit("showBusyIndicator", true);
-
       const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -184,16 +181,49 @@ export default {
       );
       const sensorData = await blockResponse.json();
       this.$root.$emit("showBusyIndicator", false);
-      this.sensors = sensorData.map((item) => {
+      let finalResult = [];
+      let portNumber = [1, 2, 3, 4, 5, 6, 7, 8];
+      portNumber.forEach((port) => {
+        let portArray = sensorData.filter((item) => item.idx === port);
+        for (let i = 1; i < portArray.length; i++) {
+          let currentItem = portArray[i - 1];
+          let nextItem = portArray[i];
+          let delta =
+            (new Date(nextItem.timestamp) - new Date(currentItem.timestamp)) /
+            1000;
+          let calculatedCurrent =
+            Math.abs(delta) * currentItem.v + currentItem.totalCurrent;
+          nextItem.totalCurrent = calculatedCurrent;
+          nextItem.totalRuntime = delta + currentItem.totalRuntime;
+          nextItem.timeDiff = delta;
+        }
+        let lastItem = portArray.pop();
+        if (lastItem) {
+          delete lastItem["timeDiff"];
+          delete lastItem["timestamp"];
+          delete lastItem["v"];
+          lastItem.totalCurrent = (lastItem.totalCurrent * 230) / 1000;
+          lastItem.totalRuntime = lastItem.totalRuntime / 3600;
+          finalResult.push(lastItem);
+        }
+      });
+      //  console.log(finalResult);
+      this.sensors = finalResult.map((item) => {
+        console.log(item);
         return {
-          port: "Port " + item.port,
-          totalPower: (item.totalCurrent * 230) / 1000, //converting ampere to kW
-          totalHour: item.totalHour,
-          totalEnergy: this.getTotalEnergy(item),
+          port: "Port " + item.idx,
+          totalPower: item.totalCurrent, //converting ampere to kWh
+          totalHour: item.totalRuntime,
+          totalEnergy: item.totalCurrent * item.totalRuntime,
         };
       });
       this.total = 0;
-
+      const sum = this.sensors
+        .map((item) => item.totalEnergy)
+        .reduce((prev, curr) => prev + curr, 0);
+      console.log(sum);
+      this.total = sum * this.unitPrice;
+      console.log(this.total);
       this.$root.$emit("showBusyIndicator", false);
     },
     clear() {},
@@ -215,7 +245,6 @@ export default {
       }
     },
     calculatePrice() {
-      console.log(this.sensors);
       const sum = this.sensors
         .map((item) => item.totalEnergy)
         .reduce((prev, curr) => prev + curr, 0);

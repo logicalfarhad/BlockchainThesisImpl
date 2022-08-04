@@ -43,56 +43,28 @@ const getLogs = async (currentBlockTimeStamp, nextBlockTimeStamp, collectionName
 const getSensorData = async (startDate, endDate) => {
     let pipeline = [
         {
-            $group: {
-                _id: '$idx',
-                totalCurrent: {
-                    $sum: "$v"
+            $addFields: {
+                timestamp: {
+                    $toDate: '$timeStamp'
                 },
-                minTime: {
-                    $min: "$timeStamp"
-                },
-                maxTime: {
-                    $max: "$timeStamp"
-                }
+                totalCurrent: 0,
+                totalRuntime: 0,
+                timeDiff: 0
             }
-        },
-        {
+        }, {
             $project: {
-                port: "$_id",
                 _id: 0,
-                totalCurrent: "$totalCurrent",
-                maxTime: { "$toDate": "$maxTime" },
-                minTime: { "$toDate": "$minTime" }
+                idx: 1,
+                v: 1,
+                timestamp: 1,
+                totalCurrent: 1,
+                totalRuntime: 1,
+                timeDiff: 1
             }
-        },
-        {
-            $project: {
-                port: "$port",
-                _id: 0,
-                totalCurrent: "$totalCurrent",
-                duration: {
-                    $dateDiff: {
-                        startDate: "$minTime",
-                        endDate: "$maxTime",
-                        unit: "minute"
-                    }
-                }
-            }
-        },
-        {
-            $project: {
-                port: "$port",
-                totalCurrent: "$totalCurrent",
-                totalHour: {
-                    $divide: [
-                        "$duration", 60
-                    ]
-                }
-            }
-        },
-        {
+        }, {
             $sort: {
-                port: 1
+                idx: 1,
+                timestamp: 1
             }
         }
     ];

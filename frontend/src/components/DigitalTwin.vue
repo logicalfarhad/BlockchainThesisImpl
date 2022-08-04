@@ -1,7 +1,35 @@
 <template>
   <v-container class="grey lighten-5">
     <v-row>
-      <v-col md="4"> </v-col>
+      <v-col md="4">
+        <v-card>
+          <v-card-title> Change threshold value</v-card-title>
+          <v-card-text>
+            <v-text-field
+              dense
+              label="Specify a threshold value"
+              v-model="threshold"
+              type="number"
+            ></v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary darken-1" @click="setthreshold"> Set </v-btn>
+            <v-spacer></v-spacer>
+          </v-card-actions>
+          <div>
+            <v-divider></v-divider>
+            <v-card-text>
+              <div>
+                Please set a new threshold value for current consumption. If any
+                ports consume more current than the specified thresh hold value,
+                the 8th port will be switched on automatically. Current
+                threshold value: {{ THRESHHOLD }}
+              </div>
+            </v-card-text>
+          </div>
+        </v-card>
+      </v-col>
+
       <v-col md="4">
         <v-card>
           <v-card-title>Switch board </v-card-title>
@@ -85,6 +113,8 @@ export default {
       socket: io(),
       tx: null,
       portConfig: null,
+      THRESHHOLD: process.env.VUE_APP_CURRENT_THRESHHOLD,
+      threshold: 0.0,
       statusList: [
         [false, false, false, false],
         [false, false, false, false],
@@ -92,7 +122,7 @@ export default {
       cols: 2,
       eventList: [],
       headers: [
-        { text: "Event id", sortable: false, value: "eventId" },
+        { text: "Event Id", sortable: false, value: "eventId" },
         { text: "Creation time", sortable: false, value: "creationTime" },
         { text: "Block no.", sortable: false, value: "blockNumber" },
         { text: "Gas used", sortable: false, value: "gasUsed" },
@@ -128,7 +158,7 @@ export default {
       (a, b) => b.blockNumber - a.blockNumber
     );
     this.eventList = [...this.eventList];
-   this.$root.$emit("showBusyIndicator", false);
+    //  this.$root.$emit("showBusyIndicator", false);
 
     this.portConfig = [
       {
@@ -191,17 +221,21 @@ export default {
         status: status,
         portNumber: item.text,
       });
-       this.$root.$emit("showBusyIndicator", false);
+      this.$root.$emit("showBusyIndicator", false);
+    },
+    setthreshold() {
+      this.THRESHHOLD = this.threshold;
     },
   },
+
   async mounted() {
-    const THRESHHOLD = process.env.VUE_APP_CURRENT_THRESHHOLD;
     const APP_URL = process.env.VUE_APP_BACKEND_BASE_URL;
     this.socket = io.connect(APP_URL);
     this.socket.on("connect", async () => {
+      console.log(this.THRESHHOLD);
       this.socket.on("data_from_mqtt", async (msg) => {
-        if (msg.v > THRESHHOLD && msg.idx < 8) {
-          console.log(msg.v);
+        console.log("Port " + msg.idx + " current:" + msg.v);
+        if (msg.v > this.THRESHHOLD && msg.idx < 8) {
           if (this.statusList[1][3] === false) {
             let obj = {
               i: 1,
@@ -210,6 +244,10 @@ export default {
               _eventMsg: "Port 8 switched on because of Port " + msg.idx,
             };
             await this.tx.sendTransaction(obj);
+            this.socket.emit("change_port_status", {
+              status: obj.status,
+              portNumber: msg.idx,
+            });
             this.statusList[1][3] = true;
             this.statusList = [...this.statusList];
           }
@@ -218,6 +256,7 @@ export default {
 
       this.socket.on("telemetry_from_mqtt", async (msg) => {
         this.$root.$emit("showBusyIndicator", false);
+        console.log(msg.portstates);
 
         for (let port of msg.portstates) {
           let portNo = port.port;
@@ -226,21 +265,22 @@ export default {
             return item.id == portNo;
           })[0];
 
-          console.log(config);
+             console.log(config);
 
           let obj = {
             i: config.indx,
             j: config.jndx,
             status: port.state == 1 ? true : false,
-            _eventMsg: "Changed because of telemetry event",
+            _eventMsg: "Changed because of telemetry feedback",
           };
 
           let porttx = await this.tx.getPortById(config.indx, config.jndx);
-          //console.log(porttx);
+          //   console.log(porttx);
           if (porttx.status !== obj.status) {
             this.statusList[config.indx][config.jndx] = obj.status;
             this.statusList = [...this.statusList];
             await this.tx.sendTransaction(obj);
+            this.eventList = [];
             this.eventList = await this.tx.getPastEvents();
             this.socket.emit("change_port_status", {
               status: obj.status,
@@ -249,8 +289,6 @@ export default {
 
             this.eventList = [...this.eventList];
           }
-          //  console.log(obj);
-          // this.tx.sendTransaction(obj);
         }
       });
     });

@@ -39,6 +39,7 @@ class TransactionUtil {
     const receipt = await contract.methods
       .addLog(payload.logHash, payload.timeStamp)
       .send({ from: address, gas: gasPrize });
+    //  console.log(receipt);
     return receipt;
   }
   async getTransaction(startDate, endDate) {

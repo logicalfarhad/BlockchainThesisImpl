@@ -34,16 +34,21 @@ class MQTTHandler {
     this.tree = new Merkeltree();
     this.IO.on("connect", (socket) => {
       socket.on("change_port_status", (payload) => {
-//        console.log(payload);
-        
-        if(typeof payload.portNumber ==="string"){
+
+        if (typeof payload.portNumber === "string") {
+           console.log("String port")
           let port = payload.portNumber.split(" ").pop();
           this.mqttClient.publish("blockchain/notary/epc/cmd/port/" + port, payload.status == true ? "1" : "0");
-          console.log(port);
-        }
+           console.log(payload);
+        } else {
+          console.log("Normal port");
+          console.log(payload);
+          let stat = payload.status === true ? "1" : "0";
 
-        
-        // this.mqttClient.publish(Topics.TOPIC_FIT_TELEMETRY, JSON.stringify(payload), { qos: 0 });
+          let publish = `blockchain/notary/epc/cmd/port/` + payload.portNumber;
+          console.log(publish + stat);
+          this.mqttClient.publish(publish, stat);
+        }
       });
     });
   }
