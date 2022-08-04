@@ -25,7 +25,6 @@
             Price in smart contract: {{ unitPrice }}€ <br />
           </v-card-text>
           <v-card-actions>
-           
             <v-btn color="primary darken-1" @click="setPrice">Set Price</v-btn>
           </v-card-actions>
         </v-card>
@@ -181,7 +180,6 @@ export default {
       );
       const sensorData = await blockResponse.json();
       this.$root.$emit("showBusyIndicator", false);
-<<<<<<< HEAD
       let finalResult = [];
       let portNumber = [1, 2, 3, 4, 5, 6, 7, 8];
       portNumber.forEach((port) => {
@@ -189,20 +187,6 @@ export default {
         for (let i = 1; i < portArray.length; i++) {
           let currentItem = portArray[i - 1];
           let nextItem = portArray[i];
-=======
-
-      let finalResult = [];
-
-      let portNumber = [1, 2, 3, 4, 5, 6, 7, 8];
-
-      portNumber.forEach((port) => {
-        let portArray = sensorData.filter((item) => item.idx === port);
-
-        for (let i = 1; i < portArray.length; i++) {
-          let currentItem = portArray[i - 1];
-          let nextItem = portArray[i];
-
->>>>>>> 2a8fe831dc2a89ac92a5584fbd9f4d32e9f5acdc
           let delta =
             (new Date(nextItem.timestamp) - new Date(currentItem.timestamp)) /
             1000;
@@ -212,34 +196,17 @@ export default {
           nextItem.totalRuntime = delta + currentItem.totalRuntime;
           nextItem.timeDiff = delta;
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> 2a8fe831dc2a89ac92a5584fbd9f4d32e9f5acdc
         let lastItem = portArray.pop();
         if (lastItem) {
           delete lastItem["timeDiff"];
           delete lastItem["timestamp"];
           delete lastItem["v"];
-<<<<<<< HEAD
           lastItem.totalCurrent = (lastItem.totalCurrent * 230) / 1000;
           lastItem.totalRuntime = lastItem.totalRuntime / 3600;
           finalResult.push(lastItem);
         }
       });
       //  console.log(finalResult);
-=======
-
-          lastItem.totalCurrent = (lastItem.totalCurrent * 230) / 1000;
-          lastItem.totalRuntime = lastItem.totalRuntime / 3600;
-
-          finalResult.push(lastItem);
-        }
-      });
-
-      //  console.log(finalResult);
-
->>>>>>> 2a8fe831dc2a89ac92a5584fbd9f4d32e9f5acdc
       this.sensors = finalResult.map((item) => {
         console.log(item);
         return {
@@ -250,20 +217,12 @@ export default {
         };
       });
       this.total = 0;
-<<<<<<< HEAD
-=======
-
->>>>>>> 2a8fe831dc2a89ac92a5584fbd9f4d32e9f5acdc
       const sum = this.sensors
         .map((item) => item.totalEnergy)
         .reduce((prev, curr) => prev + curr, 0);
       console.log(sum);
       this.total = sum * this.unitPrice;
       console.log(this.total);
-<<<<<<< HEAD
-=======
-
->>>>>>> 2a8fe831dc2a89ac92a5584fbd9f4d32e9f5acdc
       this.$root.$emit("showBusyIndicator", false);
     },
     clear() {},
@@ -291,12 +250,7 @@ export default {
       console.log(sum);
       this.total = sum * this.unitPrice;
       console.log(this.total);
-    },
-    getTotalEnergy(item) {
-      let totalHours = item.totalHour;
-      let totalPower = (item.totalCurrent * 230) / 1000;
-      return totalPower * totalHours;
-    },
+    }
   },
 };
 </script>
